@@ -229,13 +229,20 @@
     // --- 1. Memory / Save System ---
     let saveData = JSON.parse(localStorage.getItem('shadowSaveV5')) || {
         topWave: 1, gold: 0, 
-        checkpointWave: 1, // New Checkpoint System
+        checkpointWave: 1, 
         unlockedBosses: ['👹'],
-        unlockedHeroes: ['🤖'], // Default unlocked hero
+        unlockedHeroes: ['🤖'], 
         selectedShadowBoss: '👹',
         stats: { atk: 1, dash: 1, shield: 1, spell: 1, shadow: 1, pSpeed: 1, pHp: 1, sSpeed: 1, sDmg: 1, sHp: 1, spellDur: 1, shieldDur: 1 }
     };
     
+    // Add default values if missing (Backward Compatibility for old saves)
+    if (!saveData.savedColor) saveData.savedColor = '#ffffff';
+    if (!saveData.savedTeam) saveData.savedTeam = '#000000';
+    if (!saveData.savedHeroEmoji) saveData.savedHeroEmoji = '🤖';
+    if (!saveData.savedHeroName) saveData.savedHeroName = 'Robot';
+    if (saveData.savedName === undefined) saveData.savedName = '';
+
     const statConfig = {
         atk: { name: "Attack Damage", base: 40, step: 6 },
         dash: { name: "Dash CD", base: 180, step: -3 },
@@ -286,6 +293,20 @@
         document.getElementById('lb-gold').innerText = `🪙 Gold: ${saveData.gold}`;
         document.getElementById('ingame-gold').innerText = `🪙 ${saveData.gold}`;
     }
+    
+    // UI Initialization from Save
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById('player-name').value = saveData.savedName;
+        document.getElementById('disp-emoji').innerText = saveData.savedHeroEmoji;
+        document.getElementById('disp-name').innerText = saveData.savedHeroName;
+        document.getElementById('hud-emoji').innerText = saveData.savedHeroEmoji;
+    });
+
+    document.getElementById('player-name').addEventListener('input', (e) => { 
+        saveData.savedName = e.target.value; 
+        saveGame(); 
+    });
+
     updateMenuUI();
 
     // Redeem Code Function
@@ -332,10 +353,10 @@
     const bodyColors = ['#ffffff', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
     const teamColors = ['#000000', '#ef4444', '#3b82f6', '#10b981', '#facc15']; 
 
-    let playerColor = bodyColors[0];
-    let playerTeamColor = teamColors[0]; 
-    let currentHero = { emoji: '🤖', name: 'Robot' };
-    let myName = "Player";
+    let playerColor = saveData.savedColor;
+    let playerTeamColor = saveData.savedTeam; 
+    let currentHero = { emoji: saveData.savedHeroEmoji, name: saveData.savedHeroName };
+    let myName = saveData.savedName || "Player";
 
     function showModal(id) { document.getElementById(id).style.display = 'flex'; }
     function hideModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -345,7 +366,14 @@
     bodyColors.forEach(c => {
         let btn = document.createElement('div'); btn.className = 'color-btn'; btn.style.backgroundColor = c;
         if(c === playerColor) btn.classList.add('active');
-        btn.onclick = () => { document.querySelectorAll('#color-grid .color-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); playerColor = c; sendPlayerSettingsUpdate(); }; 
+        btn.onclick = () => { 
+            document.querySelectorAll('#color-grid .color-btn').forEach(b => b.classList.remove('active')); 
+            btn.classList.add('active'); 
+            playerColor = c; 
+            saveData.savedColor = c; 
+            saveGame(); 
+            sendPlayerSettingsUpdate(); 
+        }; 
         colorGrid.appendChild(btn);
     });
 
@@ -354,7 +382,14 @@
         let btn = document.createElement('div'); btn.className = 'color-btn'; btn.style.backgroundColor = t;
         if (t === '#000000') btn.style.border = '2px dashed #94a3b8';
         if(t === playerTeamColor) btn.classList.add('active');
-        btn.onclick = () => { document.querySelectorAll('#team-grid .color-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); playerTeamColor = t; sendPlayerSettingsUpdate(); }; 
+        btn.onclick = () => { 
+            document.querySelectorAll('#team-grid .color-btn').forEach(b => b.classList.remove('active')); 
+            btn.classList.add('active'); 
+            playerTeamColor = t; 
+            saveData.savedTeam = t; 
+            saveGame(); 
+            sendPlayerSettingsUpdate(); 
+        }; 
         teamGrid.appendChild(btn);
     });
 
@@ -376,10 +411,16 @@
                 let btn = document.createElement('button'); btn.className = 'btn-equip'; btn.innerText = 'EQUIP';
                 btn.onclick = () => {
                     currentHero = { emoji: h.emoji, name: h.name };
+                    saveData.savedHeroEmoji = h.emoji; 
+                    saveData.savedHeroName = h.name; 
+                    saveGame();
+                    
                     document.getElementById('disp-emoji').innerText = h.emoji;
                     document.getElementById('disp-name').innerText = h.name;
                     document.getElementById('hud-emoji').innerText = h.emoji;
-                    hideModal('hero-modal'); sendPlayerSettingsUpdate();
+                    
+                    hideModal('hero-modal'); 
+                    sendPlayerSettingsUpdate();
                 };
                 div.appendChild(btn);
             } else {
@@ -429,9 +470,31 @@
         const code = document.getElementById('join-code-input').value.trim();
         if (!code) return;
         document.getElementById('room-code-txt').innerText = "Connecting...";
+        document.getElementById('room-code-txt').style.color = "#facc15";
         document.getElementById('mp-code-container').style.display = 'block';
+        
         peer = new Peer();
-        peer.on('open', (id) => { myClientId = id; const conn = peer.connect(code); setupClientConnectionEvents(conn); });
+        
+        peer.on('open', (id) => { 
+            myClientId = id; 
+            const conn = peer.connect(code, { reliable: true }); 
+            
+            conn.on('open', () => {
+                document.getElementById('room-code-txt').innerText = "Connected!";
+                document.getElementById('room-code-txt').style.color = "#10b981";
+                setupClientConnectionEvents(conn); 
+            });
+
+            conn.on('error', (err) => {
+                document.getElementById('room-code-txt').innerText = "Host Not Found!";
+                document.getElementById('room-code-txt').style.color = "#ef4444";
+            });
+        });
+
+        peer.on('error', (err) => {
+            document.getElementById('room-code-txt').innerText = "Invalid Code or Error!";
+            document.getElementById('room-code-txt').style.color = "#ef4444";
+        });
     }
 
     function addLobbyPlayer(id, name, emoji, color, team, hostFlag = false) {
@@ -457,7 +520,7 @@
             let self = lobbyPlayers.find(p => p.id === myClientId);
             if (self) { self.emoji = currentHero.emoji; self.color = playerColor; self.team = playerTeamColor; self.name = myName; }
             broadcast({ type: 'lobby_update', players: lobbyPlayers }); updateLobbyListUI();
-        } else if (connections[0]) {
+        } else if (connections[0] && connections[0].open) {
             connections[0].send({ type: 'update_settings', id: myClientId, name: myName, emoji: currentHero.emoji, color: playerColor, team: playerTeamColor });
         }
     }
@@ -606,7 +669,7 @@
     document.getElementById('btn-spell').ontouchstart = (e) => { 
         e.preventDefault(); if(player.isDead || player.cdSpell > 0) return;
         let em = currentHero.emoji; let durMulti = getStatValue('spellDur');
-        // Non-spell heroes
+        
         if(['🤖','💀','👻','🧟','👺','👹'].includes(em)) {
             let dirX = player.vx || 1, dirY = player.vy || 0; if (!peer || isHost) spells.push({ x: player.x, y: player.y, vx: dirX * 18, vy: dirY * 18, life: 100, color: playerColor });
         }
@@ -634,7 +697,6 @@
         document.getElementById('lobby').style.display = 'none'; hideModal('mp-lobby-modal'); document.getElementById('game-ui').style.display = 'block';
         gameState = 'PLAYING'; 
         
-        // Start from Checkpoint in Offline Mode
         wave = (!isOnlineMode && saveData.checkpointWave > 1) ? saveData.checkpointWave : 1; 
         frames = 0; 
         
@@ -654,7 +716,6 @@
         let angle = Math.random() * Math.PI * 2, dist = 600, ex = player.x + Math.cos(angle) * dist, ey = player.y + Math.sin(angle) * dist;
         let hpBase = 1500 + (w*150);
         
-        // Endless Mode Random Bosses after Wave 35
         let bType = w;
         if (w > 35) {
             let bossWaves = [5, 10, 15, 20, 25, 30, 35];
@@ -727,7 +788,6 @@
                 addFloatText(`+ ${earned} Gold!`, width/2 - 40, height/4);
                 if (peer) broadcast({type: 'float_text', text: `+ ${earned} Gold!`, x: width/2 - 40, y: height/4, color: '#facc15'});
                 
-                // Save Checkpoint on Boss Waves
                 if (!isOnlineMode && wave % 5 === 0) {
                     saveData.checkpointWave = wave + 1;
                     addFloatText("CHECKPOINT REACHED!", width/2 - 100, height/3, '#10b981');
@@ -843,7 +903,6 @@
         for(let i=particles.length-1; i>=0; i--) { particles[i].x += particles[i].vx; particles[i].y += particles[i].vy; particles[i].life--; if(particles[i].life <= 0) particles.splice(i, 1); }
     }
 
-    // AI Targeting Logic with Corrected Tower Safe Zones
     function getNearestAlivePlayer(x, y) {
         let nearest = null; let minDist = Infinity;
         let playersList = [];
@@ -852,7 +911,6 @@
 
         playersList.forEach(p => {
             let inSafeZone = false;
-            // တာဝါအဝိုင်းထဲ ဝင်နေတဲ့ ကစားသမားကို စစ်ဆေးခြင်း (သူ့တာဝါအရောင်နဲ့ ကိုက်ညီမှ Safe ဖြစ်မည်)
             if (isOnlineMode) {
                 towers.forEach(t => { 
                     if (t.active && t.team === p.team && Math.hypot(p.x - t.x, p.y - t.y) < t.safeRadius) {
@@ -861,7 +919,6 @@
                 });
             }
             
-            // အကယ်၍ ထိုကစားသမားသည် သူ၏ Safe Zone အတွင်း မရှိဘူးဆိုမှသာ ရန်သူက ပစ်မှတ်ထားမည်
             if (!inSafeZone) {
                 let dist = Math.hypot(p.x - x, p.y - y);
                 if (dist < minDist) { minDist = dist; nearest = p; }
@@ -937,7 +994,6 @@
                 ctx.fillStyle = t.color; ctx.fillRect(t.x - 20, t.y - 40, 40, 80);
                 ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.5; ctx.fillRect(t.x - 10, t.y - 30, 20, 60); ctx.globalAlpha = 1.0;
                 
-                // Tower HP
                 ctx.fillStyle = '#1e293b'; ctx.fillRect(t.x - 40, t.y - 65, 80, 8);
                 ctx.fillStyle = t.color; ctx.fillRect(t.x - 40, t.y - 65, (t.hp/t.maxHp)*80, 8);
             });
