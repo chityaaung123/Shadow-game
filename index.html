@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,12 +72,13 @@
         .btn-upg:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
 
         .boss-index-container { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap;}
-        .boss-index-card { background: #334155; padding: 10px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; width: 80px; }
+        .boss-index-card { background: #334155; padding: 10px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; width: 80px; position: relative;}
         .boss-index-card.selected { border-color: #facc15; background: #475569; }
         .boss-index-card.locked { opacity: 0.3; cursor: not-allowed; }
+        .selection-badge { position: absolute; top: -5px; right: -5px; background: #facc15; color: #000; font-weight: bold; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
 
         #end-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 50; flex-direction: column; align-items: center; justify-content: center; }
-        #end-title { font-size: 4.5rem; font-weight: 900; letter-spacing: 5px; text-transform: uppercase; text-shadow: 0 0 20px rgba(0,0,0,0.8); margin-bottom: 30px; }
+        #end-title { font-size: 4.5rem; font-weight: 900; letter-spacing: 5px; text-transform: uppercase; text-shadow: 0 0 20px rgba(0,0,0,0.8); margin-bottom: 30px; text-align: center;}
         .victory-text { color: #facc15; text-shadow: 0 0 30px #ca8a04; }
         .defeat-text { color: #ef4444; text-shadow: 0 0 30px #b91c1c; }
 
@@ -179,7 +181,8 @@
             
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #475569;">
             
-            <h3 style="color: #facc15;">Boss Index (Unlocks Companion Shadow)</h3>
+            <h3 style="color: #facc15;">Boss Index (Unlocks Companion Shadows)</h3>
+            <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">Max Shadows: <span id="max-shadows-txt">1</span></div>
             <div class="boss-index-container" id="boss-index-list"></div>
 
             <button class="btn-change" style="margin-top:20px; width:100%; background:#ef4444;" onclick="hideModal('stats-modal')">Close</button>
@@ -199,6 +202,7 @@
     <!-- End Game MLBB Screen -->
     <div id="end-screen">
         <div id="end-title" class="defeat-text">DEFEAT</div>
+        <div id="end-subtitle" style="color:#cbd5e1; font-size:1.2rem; margin-bottom:20px;"></div>
         <button class="btn-change" style="font-size: 1.2rem; padding: 15px 30px; background: #3b82f6;" onclick="location.reload()">Back to Main Menu</button>
     </div>
 
@@ -211,7 +215,7 @@
             </div>
             <div class="hud-gold" id="ingame-gold">🪙 0</div>
         </div>
-        <div id="wave-info">Wave: 1<br><span id="timer-txt" style="font-size:0.9rem; color:#fff;">00:00</span></div>
+        <div id="wave-info">Wave: 1<br><span id="timer-txt" style="font-size:0.9rem; color:#fff;">Spawning...</span></div>
 
         <div class="joystick-zone" id="joy-zone"><div class="joystick-knob" id="joy-knob"></div></div>
         <div class="actions-zone">
@@ -227,16 +231,22 @@
 
 <script>
     // --- 1. Memory / Save System ---
-    let saveData = JSON.parse(localStorage.getItem('shadowSaveV5')) || {
+    let saveData = JSON.parse(localStorage.getItem('shadowSaveV6')) || {
         topWave: 1, gold: 0, 
         checkpointWave: 1, 
-        unlockedBosses: ['👹'],
+        unlockedBosses: [], // Start with NO bosses unlocked
         unlockedHeroes: ['🤖'], 
-        selectedShadowBoss: '👹',
-        stats: { atk: 1, dash: 1, shield: 1, spell: 1, shadow: 1, pSpeed: 1, pHp: 1, sSpeed: 1, sDmg: 1, sHp: 1, spellDur: 1, shieldDur: 1 }
+        selectedShadowBosses: [], // Array for multiple selections
+        stats: { atk: 1, dash: 1, shield: 1, spell: 1, shadow: 1, maxShadows: 1, pSpeed: 1, pHp: 1, sSpeed: 1, sDmg: 1, sHp: 1, spellDur: 1, shieldDur: 1 }
     };
     
-    // Add default values if missing (Backward Compatibility for old saves)
+    // Migration from old saves
+    if (!saveData.selectedShadowBosses) {
+        saveData.selectedShadowBosses = saveData.selectedShadowBoss ? [saveData.selectedShadowBoss] : [];
+    }
+    if (saveData.stats.maxShadows === undefined) saveData.stats.maxShadows = 1;
+
+    // Add default values if missing
     if (!saveData.savedColor) saveData.savedColor = '#ffffff';
     if (!saveData.savedTeam) saveData.savedTeam = '#000000';
     if (!saveData.savedHeroEmoji) saveData.savedHeroEmoji = '🤖';
@@ -248,7 +258,8 @@
         dash: { name: "Dash CD", base: 180, step: -3 },
         shield: { name: "Shield CD", base: 400, step: -6 },
         spell: { name: "Spell CD", base: 600, step: -8 },     
-        shadow: { name: "Shadow CD", base: 18000, step: -200 },
+        shadow: { name: "Shadow CD", base: 3600, step: -50 }, // Reduced base CD for fun
+        maxShadows: { name: "Max Shadow Output", base: 1, step: 1 }, // Custom cost formula used
         pSpeed: { name: "Player Speed", base: 7, step: 0.2 },
         pHp: { name: "Player Health", base: 1000, step: 100 },
         sSpeed: { name: "Shadow Speed", base: 6, step: 0.3 },
@@ -267,6 +278,8 @@
         '👻': { name: "Phantom Lord", wave: 30 },
         '😈': { name: "Doom Bringer", wave: 35 }
     };
+    
+    const enemyTypes = ['💀', '🧟', '🧛', '🐺', '🕷️', '🦂', '🦇', '🐍', '🐊', '🦍'];
 
     const heroShopConfig = [
         { emoji: '🤖', name: 'Robot', spell: 'None', cost: 1000 },
@@ -282,9 +295,13 @@
     ];
 
     function getStatValue(key) { return statConfig[key].base + (statConfig[key].step * (saveData.stats[key] - 1)); }
+    function getStatCost(key, lvl) {
+        if (key === 'maxShadows') return 10000 * Math.pow(3, lvl - 1); // 10k, 30k, 90k, ...
+        return Math.floor(100 * Math.pow(1.5, lvl - 1));
+    }
 
     function saveGame() {
-        localStorage.setItem('shadowSaveV5', JSON.stringify(saveData));
+        localStorage.setItem('shadowSaveV6', JSON.stringify(saveData));
         updateMenuUI();
     }
 
@@ -314,7 +331,7 @@
         const code = document.getElementById('redeem-input').value;
         if (code === '!@#$12345678!@#$') {
             saveData.gold += 999999;
-            Object.keys(saveData.stats).forEach(key => saveData.stats[key] = 50);
+            Object.keys(saveData.stats).forEach(key => saveData.stats[key] = (key === 'maxShadows' ? 7 : 50));
             Object.keys(bossMeta).forEach(emoji => { if(!saveData.unlockedBosses.includes(emoji)) saveData.unlockedBosses.push(emoji); });
             heroShopConfig.forEach(h => { if(!saveData.unlockedHeroes.includes(h.emoji)) saveData.unlockedHeroes.push(h.emoji); });
             saveGame();
@@ -329,25 +346,57 @@
         
         const container = document.getElementById('stats-container'); container.innerHTML = '';
         Object.keys(saveData.stats).forEach(key => {
-            let lvl = saveData.stats[key], cost = Math.floor(100 * Math.pow(1.5, lvl - 1));
+            let lvl = saveData.stats[key];
+            let maxLvl = key === 'maxShadows' ? 7 : 50; // Cap shadows to 7 (total bosses)
+            let cost = getStatCost(key, lvl);
+            
             let row = document.createElement('div'); row.className = 'stat-row';
-            row.innerHTML = `<div class="stat-info"><div class="stat-name">${statConfig[key].name} <span class="stat-lvl">(Lvl ${lvl}/50)</span></div><div style="font-size: 12px; color: #cbd5e1;">🪙 ${lvl < 50 ? cost : 'MAX'}</div></div><button class="btn-upg" ${saveData.gold < cost || lvl >= 50 ? 'disabled' : ''} onclick="buyUpgrade('${key}', ${cost})">UPGRADE</button>`;
+            row.innerHTML = `<div class="stat-info"><div class="stat-name">${statConfig[key].name} <span class="stat-lvl">(Lvl ${lvl}/${maxLvl})</span></div><div style="font-size: 12px; color: #cbd5e1;">🪙 ${lvl < maxLvl ? cost : 'MAX'}</div></div><button class="btn-upg" ${saveData.gold < cost || lvl >= maxLvl ? 'disabled' : ''} onclick="buyUpgrade('${key}', ${cost})">UPGRADE</button>`;
             container.appendChild(row);
         });
 
+        document.getElementById('max-shadows-txt').innerText = saveData.stats.maxShadows;
         const indexList = document.getElementById('boss-index-list'); indexList.innerHTML = '';
+        
         Object.keys(bossMeta).forEach(emoji => {
             const info = bossMeta[emoji];
             const isUnlocked = saveData.unlockedBosses.includes(emoji);
+            const isSelected = saveData.selectedShadowBosses.includes(emoji);
+            
             const card = document.createElement('div');
-            card.className = `boss-index-card ${isUnlocked ? '' : 'locked'} ${saveData.selectedShadowBoss === emoji ? 'selected' : ''}`;
-            card.innerHTML = `<div style="font-size:28px;">${isUnlocked ? emoji : '🔒'}</div><div style="font-size:10px; margin-top:5px; font-weight:bold;">${info.name}</div>`;
-            if (isUnlocked) card.onclick = () => { saveData.selectedShadowBoss = emoji; saveGame(); openStatsModal(); };
+            card.className = `boss-index-card ${isUnlocked ? '' : 'locked'} ${isSelected ? 'selected' : ''}`;
+            card.innerHTML = `
+                <div style="font-size:28px;">${isUnlocked ? emoji : '🔒'}</div>
+                <div style="font-size:10px; margin-top:5px; font-weight:bold;">${info.name}</div>
+                ${isSelected ? '<div class="selection-badge">✓</div>' : ''}
+            `;
+            
+            if (isUnlocked) {
+                card.onclick = () => { 
+                    if (isSelected) {
+                        saveData.selectedShadowBosses = saveData.selectedShadowBosses.filter(e => e !== emoji);
+                    } else {
+                        if (saveData.selectedShadowBosses.length < saveData.stats.maxShadows) {
+                            saveData.selectedShadowBosses.push(emoji);
+                        } else {
+                            alert(`You can only equip up to ${saveData.stats.maxShadows} shadows. Upgrade stat to equip more!`);
+                            return;
+                        }
+                    }
+                    saveGame(); openStatsModal(); 
+                };
+            }
             indexList.appendChild(card);
         });
         showModal('stats-modal');
     }
-    function buyUpgrade(key, cost) { if (saveData.gold >= cost && saveData.stats[key] < 50) { saveData.gold -= cost; saveData.stats[key]++; saveGame(); openStatsModal(); } }
+    
+    function buyUpgrade(key, cost) { 
+        let maxLvl = key === 'maxShadows' ? 7 : 50;
+        if (saveData.gold >= cost && saveData.stats[key] < maxLvl) { 
+            saveData.gold -= cost; saveData.stats[key]++; saveGame(); openStatsModal(); 
+        } 
+    }
 
     // --- 2. Customization System ---
     const bodyColors = ['#ffffff', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
@@ -541,18 +590,18 @@
             if (data.type === 'lobby_update') { lobbyPlayers = data.players; updateLobbyListUI(); }
             if (data.type === 'start_game') { startPlayingPhase(true); }
             if (data.type === 'sync_game_state') {
-                enemies = data.enemies; spells = data.spells; particles = data.particles; allyShadows = data.allyShadows; wave = data.wave; frames = data.frames; remotePlayers = data.players; towers = data.towers;
+                enemies = data.enemies; spells = data.spells; particles = data.particles; allyShadows = data.allyShadows; hazards = data.hazards; wave = data.wave; waveState = data.waveState; frames = data.frames; remotePlayers = data.players; towers = data.towers;
                 if (data.players[myClientId]) { player.hp = data.players[myClientId].hp; player.isDead = data.players[myClientId].isDead; updateHPBar(); }
             }
             if (data.type === 'float_text') addFloatText(data.text, data.x, data.y, data.color);
-            if (data.type === 'end_game') showEndGame(data.status, data.color);
+            if (data.type === 'end_game') showEndGame(data.status, data.color, data.sub);
         });
     }
 
     function broadcast(data) { connections.forEach(conn => { if (conn.open) conn.send(data); }); }
     function leaveMultiplayer() { if (peer) { peer.destroy(); peer = null; } connections = []; lobbyPlayers = []; remotePlayers = {}; isHost = false; hideModal('mp-lobby-modal'); gameState = 'MENU'; }
 
-    // --- 4. Game Engine Setup & Towers ---
+    // --- 4. Game Engine Setup & Core Systems ---
     const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
     let width, height; function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
     window.addEventListener('resize', resize); resize();
@@ -573,13 +622,17 @@
 
     let player = {
         id: "local", name: "Player", x: MAP_SIZE/2, y: MAP_SIZE/2, speed: 7, hp: 1000, maxHp: 1000, vx: 0, vy: 0, isShielded: false, isMoving: false,
-        cdDash: 0, cdShield: 0, cdSpell: 0, shadowCD: 0, lastHitFrame: 0, lionBuff: 0, wizardBuff: 0, emoji: '🤖', color: '#fff', team: '#000000', lastAtkFrame: 0,
+        cdDash: 0, cdShield: 0, cdSpell: 0, shadowCD: 0, lastHitFrame: 0, lionBuff: 0, wizardBuff: 0, slowTimer: 0, emoji: '🤖', color: '#fff', team: '#000000', lastAtkFrame: 0,
         isDead: false, deathCount: 0, respawnTimer: 0
     };
 
-    let enemies = [], spells = [], particles = [], allyShadows = [], tombstones = [];
-    let wave = 1, spawnRate = 60;
-    let vampAura = { active: false, framesLeft: 0 };
+    let enemies = [], spells = [], particles = [], allyShadows = [], tombstones = [], hazards = [];
+    
+    // Wave System
+    let wave = 1;
+    let waveState = 'SPAWNING'; // SPAWNING, CLEARING, BOSS
+    let totalEnemiesThisWave = 0;
+    let spawnedThisWave = 0;
 
     for(let i=0; i<MAP_SIZE; i+=400) { for(let j=0; j<MAP_SIZE; j+=350) { if(Math.random() > 0.3) tombstones.push({x: i + Math.random()*100, y: j + Math.random()*100, type: Math.floor(Math.random()*3)}); } }
 
@@ -587,12 +640,14 @@
     function updateHPBar() { document.getElementById('hp-fill').style.width = player.isDead ? '0%' : Math.max(0, (player.hp/player.maxHp)*100) + '%'; }
     function healPlayer(amt) { if(!player.isDead){ player.hp = Math.min(player.maxHp, player.hp + amt); updateHPBar(); } }
 
-    function showEndGame(status, color) {
+    function showEndGame(status, color, subtitle = "") {
         gameState = 'END';
         document.getElementById('end-screen').style.display = 'flex';
         let txt = document.getElementById('end-title');
+        let sub = document.getElementById('end-subtitle');
         txt.innerText = status;
         txt.className = status === 'VICTORY' ? 'victory-text' : 'defeat-text';
+        sub.innerText = subtitle;
     }
 
     // --- 5. Controls ---
@@ -645,20 +700,20 @@
             let p = remotePlayers[id];
             if (p.team !== '#000000' && !activeTeams.includes(p.team)) {
                 let conn = connections.find(c => c.peer === id);
-                if (conn) conn.send({type: 'end_game', status: 'DEFEAT', color: '#ef4444'});
+                if (conn) conn.send({type: 'end_game', status: 'DEFEAT', color: '#ef4444', sub: "Your tower was destroyed!"});
             }
         });
 
-        if (player.team !== '#000000' && !activeTeams.includes(player.team)) showEndGame('DEFEAT', '#ef4444');
+        if (player.team !== '#000000' && !activeTeams.includes(player.team)) showEndGame('DEFEAT', '#ef4444', "Your tower was destroyed!");
 
         if (activeTeams.length === 1) {
             let winningTeam = activeTeams[0];
-            if (player.team === winningTeam) showEndGame('VICTORY', '#facc15');
+            if (player.team === winningTeam) showEndGame('VICTORY', '#facc15', "All enemy towers destroyed!");
             Object.keys(remotePlayers).forEach(id => {
                 let p = remotePlayers[id];
                 if (p.team === winningTeam) {
                     let conn = connections.find(c => c.peer === id);
-                    if (conn) conn.send({type: 'end_game', status: 'VICTORY', color: '#facc15'});
+                    if (conn) conn.send({type: 'end_game', status: 'VICTORY', color: '#facc15', sub: "All enemy towers destroyed!"});
                 }
             });
         }
@@ -671,20 +726,26 @@
         let em = currentHero.emoji; let durMulti = getStatValue('spellDur');
         
         if(['🤖','💀','👻','🧟','👺','👹'].includes(em)) {
-            let dirX = player.vx || 1, dirY = player.vy || 0; if (!peer || isHost) spells.push({ x: player.x, y: player.y, vx: dirX * 18, vy: dirY * 18, life: 100, color: playerColor });
+            let dirX = player.vx || 1, dirY = player.vy || 0; if (!peer || isHost) spells.push({ x: player.x, y: player.y, vx: dirX * 18, vy: dirY * 18, life: 100, color: playerColor, isPlayerSpell: true, dmg: 65 + getStatValue('atk') });
         }
-        else if(em === '🧛‍♂️') { vampAura.active = true; vampAura.framesLeft = 180 * durMulti; createParticles(player.x, player.y, '#dc2626', 30); } 
+        else if(em === '🧛‍♂️') { player.slowTimer = 0; createParticles(player.x, player.y, '#dc2626', 30); healPlayer(player.maxHp * 0.2); } // Self heal & cleanse
         else if (em === '🦁') { player.lionBuff = 420 * durMulti; healPlayer(player.maxHp * 0.1); createParticles(player.x, player.y, '#f59e0b', 30); }
         else if (em === '🧙‍♂️') { player.wizardBuff = 480 * durMulti; createParticles(player.x, player.y, '#3b82f6', 30); }
         else if (em === '🥷') {
-            for(let a=0; a<Math.PI*2; a+=Math.PI/4) { if (!peer || isHost) spells.push({ x: player.x, y: player.y, vx: Math.cos(a)*20, vy: Math.sin(a)*20, life: 50, color: '#94a3b8' }); }
+            for(let a=0; a<Math.PI*2; a+=Math.PI/4) { if (!peer || isHost) spells.push({ x: player.x, y: player.y, vx: Math.cos(a)*20, vy: Math.sin(a)*20, life: 50, color: '#94a3b8', isPlayerSpell: true, dmg: 50 + getStatValue('atk') }); }
         }
         player.cdSpell = getStatValue('spell');
     };
+    
     document.getElementById('btn-summon').ontouchstart = (e) => {
         e.preventDefault(); if(player.isDead || player.shadowCD > 0) return;
-        if(!saveData.unlockedBosses.includes(saveData.selectedShadowBoss)) return;
-        if(!peer || isHost) { allyShadows.push({ x: player.x, y: player.y, emoji: saveData.selectedShadowBoss, hp: getStatValue('sHp'), maxHp: getStatValue('sHp'), speed: getStatValue('sSpeed'), dmg: getStatValue('sDmg') }); }
+        if(saveData.selectedShadowBosses.length === 0) return;
+        
+        if(!peer || isHost) {
+            saveData.selectedShadowBosses.forEach(emoji => {
+                allyShadows.push({ x: player.x + (Math.random()*60-30), y: player.y + (Math.random()*60-30), emoji: emoji, hp: getStatValue('sHp'), maxHp: getStatValue('sHp'), speed: getStatValue('sSpeed'), dmg: getStatValue('sDmg'), lastSpellFrame: 0 });
+            });
+        }
         createParticles(player.x, player.y, '#7c3aed', 50); player.shadowCD = getStatValue('shadow'); 
     };
 
@@ -700,41 +761,50 @@
         wave = (!isOnlineMode && saveData.checkpointWave > 1) ? saveData.checkpointWave : 1; 
         frames = 0; 
         
+        prepareWave(wave);
+        
         player.maxHp = getStatValue('pHp');
         player.speed = getStatValue('pSpeed');
         player.hp = player.maxHp;
         
-        player.isDead = false; player.deathCount = 0; player.name = myName;
-        enemies = []; allyShadows = []; spells = []; initTowers();
+        player.isDead = false; player.deathCount = 0; player.name = myName; player.slowTimer = 0;
+        enemies = []; allyShadows = []; spells = []; hazards = []; initTowers();
         player.emoji = currentHero.emoji; player.color = playerColor; player.team = playerTeamColor;
         
         updateHPBar(); requestAnimationFrame(gameLoop);
-        if (saveData.unlockedBosses.includes(saveData.selectedShadowBoss)) document.getElementById('btn-summon').classList.add('unlocked');
+        if (saveData.selectedShadowBosses.length > 0) document.getElementById('btn-summon').classList.add('unlocked');
+    }
+    
+    function prepareWave(w) {
+        waveState = 'SPAWNING';
+        if (w === 1) {
+            totalEnemiesThisWave = 5;
+        } else {
+            totalEnemiesThisWave = Math.floor(5 * Math.pow(1.5, w - 1));
+            if (totalEnemiesThisWave > 300) totalEnemiesThisWave = 300; // Cap at 300
+        }
+        spawnedThisWave = 0;
     }
 
     function spawnBossByWave(w) {
         let angle = Math.random() * Math.PI * 2, dist = 600, ex = player.x + Math.cos(angle) * dist, ey = player.y + Math.sin(angle) * dist;
-        let hpBase = 1500 + (w*150);
+        let hpBase = 3000 + (w*300); // Super buffed Boss HP
         
-        let bType = w;
-        if (w > 35) {
-            let bossWaves = [5, 10, 15, 20, 25, 30, 35];
-            bType = bossWaves[Math.floor(Math.random() * bossWaves.length)];
-        }
+        let bossKeys = Object.keys(bossMeta);
+        let bIdx = Math.floor((w / 5) - 1);
+        if (bIdx >= bossKeys.length) bIdx = bossKeys.length - 1; // Default to last boss if very high wave
+        
+        let emoji = bossKeys[bIdx];
 
-        if (bType >= 35) enemies.push({ x: ex, y: ey, emoji: '😈', hp: hpBase*3, maxHp: hpBase*3, speed: 7, dmg: 100 + (w*2), isBoss: true, size: 110, type: 'auraBoss', lastSpellFrame: 0, enraged: false });
-        else if (bType >= 30) enemies.push({ x: ex, y: ey, emoji: '👻', hp: hpBase, maxHp: hpBase, speed: 6, dmg: 90 + (w*2), isBoss: true, size: 100, type: 'phaseBoss', phases: 3, originalSize: 100, originalSpeed: 6, originalDmg: 90, lastSpellFrame: 0, enraged: false });
-        else if (bType >= 25) enemies.push({ x: ex, y: ey, emoji: '💣', hp: hpBase*1.5, maxHp: hpBase*1.5, speed: 5, dmg: 80 + (w*2), isBoss: true, size: 95, type: 'bomber', lastSpellFrame: 0, enraged: false });
-        else if (bType >= 20) enemies.push({ x: ex, y: ey, emoji: '👾', hp: hpBase*1.2, maxHp: hpBase*1.2, speed: 6.5, dmg: 70 + (w*2), isBoss: true, size: 90, type: 'splitBoss', isOriginal: true, lastSpellFrame: 0, enraged: false });
-        else if (bType >= 15) enemies.push({ x: ex, y: ey, emoji: '⚡', hp: hpBase, maxHp: hpBase, speed: 6.5, dmg: 75 + (w*2), isBoss: true, size: 95, type: 'abyss', lastSpellFrame: 0, enraged: false });
-        else if (bType >= 10) enemies.push({ x: ex, y: ey, emoji: '🔮', hp: hpBase, maxHp: hpBase, speed: 4.5, dmg: 55 + (w*2), isBoss: true, size: 85, type: 'void', lastSpellFrame: 0, enraged: false });
-        else enemies.push({ x: ex, y: ey, emoji: '👹', hp: hpBase, maxHp: hpBase, speed: 5, dmg: 40 + (w*2), isBoss: true, size: 80, type: 'vampire', lastSpellFrame: 0, enraged: false });
+        enemies.push({ x: ex, y: ey, emoji: emoji, hp: hpBase, maxHp: hpBase, speed: 4 + (w*0.05), dmg: 80 + (w*5), isBoss: true, size: 100, lastSpellFrame: frames, enraged: false });
     }
 
     function spawnEnemy() {
         let angle = Math.random() * Math.PI * 2, dist = Math.random() * 400 + 500, ex = player.x + Math.cos(angle) * dist, ey = player.y + Math.sin(angle) * dist;
-        enemies.push({ x: ex, y: ey, emoji: '💀', hp: 80 + (wave*10), maxHp: 80 + (wave*10), speed: Math.random() * 2 + 2, dmg: 10, isBoss: false, size: 45 });
+        let randEmoji = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+        enemies.push({ x: ex, y: ey, emoji: randEmoji, hp: 150 + (wave*60), maxHp: 150 + (wave*60), speed: Math.random() * 2 + 2.5 + (wave*0.05), dmg: 30 + (wave*5), isBoss: false, size: 45 });
     }
+    
     function createParticles(x, y, color, count) { for(let i=0; i<count; i++) particles.push({ x: x, y: y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 25, color: color }); }
 
     function handleLocalDeath() {
@@ -742,7 +812,7 @@
         player.hp = 0; updateHPBar();
         
         if (!isOnlineMode) {
-            showEndGame("DEFEAT", "#ef4444");
+            showEndGame("DEFEAT", "#ef4444", `You reached Wave ${wave}. Checkpoint Saved!`);
         } else {
             player.isDead = true; player.deathCount++; player.respawnTimer = 5 + (player.deathCount * 2); 
             let countdown = setInterval(() => {
@@ -754,7 +824,7 @@
     }
 
     function respawnLocalPlayer() {
-        player.isDead = false; player.hp = player.maxHp;
+        player.isDead = false; player.hp = player.maxHp; player.slowTimer = 0;
         let myTower = towers.find(t => t.team === player.team && t.active);
         if (myTower) { player.x = myTower.x + (Math.random() * 50 - 25); player.y = myTower.y + (Math.random() * 50 - 25); } 
         else { player.x = MAP_SIZE / 2; player.y = MAP_SIZE / 2; }
@@ -768,6 +838,8 @@
         if(player.cdDash > 0) player.cdDash--; if(player.cdShield > 0) player.cdShield--;
         if(player.cdSpell > 0) player.cdSpell--; if(player.shadowCD > 0) player.shadowCD--;
         if(player.lionBuff > 0) player.lionBuff--; if(player.wizardBuff > 0) player.wizardBuff--;
+        if(player.slowTimer > 0) player.slowTimer--;
+        
         if(!player.isDead && frames - player.lastHitFrame >= 180 && player.hp < player.maxHp && frames % 60 === 0) healPlayer(player.maxHp * 0.05);
 
         document.getElementById('cd-dash').style.height = (player.cdDash/getStatValue('dash'))*100 + '%';
@@ -779,92 +851,173 @@
 
         if (peer) {
             if (isHost) { connections.forEach(conn => { let client = remotePlayers[conn.peer]; if (client) { client.x = Math.max(50, Math.min(MAP_SIZE-50, client.x)); client.y = Math.max(50, Math.min(MAP_SIZE-50, client.y)); } }); } 
-            else { let hostConn = connections[0]; if (hostConn && hostConn.open) { hostConn.send({ type: 'client_update', id: myClientId, playerState: { name: player.name, x: player.x, y: player.y, vx: player.vx, vy: player.vy, isMoving: player.isMoving, emoji: player.emoji, color: player.color, team: player.team, isShielded: player.isShielded, lionBuff: player.lionBuff, lastAtkFrame: player.lastAtkFrame, hp: player.hp, maxHp: player.maxHp, isDead: player.isDead } }); } }
+            else { let hostConn = connections[0]; if (hostConn && hostConn.open) { hostConn.send({ type: 'client_update', id: myClientId, playerState: { name: player.name, x: player.x, y: player.y, vx: player.vx, vy: player.vy, isMoving: player.isMoving, emoji: player.emoji, color: player.color, team: player.team, isShielded: player.isShielded, lionBuff: player.lionBuff, slowTimer: player.slowTimer, lastAtkFrame: player.lastAtkFrame, hp: player.hp, maxHp: player.maxHp, isDead: player.isDead } }); } }
         }
 
         if (!peer || isHost) {
-            if(frames > 0 && frames % 1800 === 0) { 
-                let earned = 20 * Math.pow(2, wave - 1); saveData.gold += earned; 
-                addFloatText(`+ ${earned} Gold!`, width/2 - 40, height/4);
-                if (peer) broadcast({type: 'float_text', text: `+ ${earned} Gold!`, x: width/2 - 40, y: height/4, color: '#facc15'});
-                
-                if (!isOnlineMode && wave % 5 === 0) {
-                    saveData.checkpointWave = wave + 1;
-                    addFloatText("CHECKPOINT REACHED!", width/2 - 100, height/3, '#10b981');
+            // Wave Logic Control
+            if (waveState === 'SPAWNING') {
+                if (spawnedThisWave < totalEnemiesThisWave && enemies.length < 300) {
+                    if (frames % 20 === 0) { spawnEnemy(); spawnedThisWave++; }
+                } else if (spawnedThisWave >= totalEnemiesThisWave) {
+                    waveState = 'CLEARING';
                 }
-                
-                wave++; spawnRate = Math.max(15, spawnRate - 10); if(wave > saveData.topWave) saveData.topWave = wave; saveGame();
+            } else if (waveState === 'CLEARING') {
+                if (enemies.length === 0) {
+                    if (wave % 5 === 0) {
+                        waveState = 'BOSS';
+                        spawnBossByWave(wave);
+                    } else {
+                        startNextWave();
+                    }
+                }
+            } else if (waveState === 'BOSS') {
+                if (enemies.length === 0) {
+                    // Boss defeated
+                    if (!isOnlineMode) {
+                        saveData.checkpointWave = wave + 1; // Update checkpoint on boss kill
+                        saveGame();
+                        addFloatText("CHECKPOINT SAVED!", width/2 - 100, height/3, '#10b981');
+                    }
+                    startNextWave();
+                }
             }
-            if(frames % spawnRate === 0) spawnEnemy();
-            if(wave % 5 === 0 && frames % 1800 === 0) spawnBossByWave(wave);
             updateMonstersAndAI();
         }
 
         let curSpeed = player.lionBuff > 0 ? player.speed * 1.5 : player.speed;
+        if (player.slowTimer > 0) curSpeed *= 0.4; // 60% slow
+        
         player.x += player.vx * curSpeed; player.y += player.vy * curSpeed;
         player.x = Math.max(50, Math.min(MAP_SIZE-50, player.x)); player.y = Math.max(50, Math.min(MAP_SIZE-50, player.y));
         camera.x = player.x - width/2; camera.y = player.y - height/2;
 
         if (player.isDead) document.getElementById('wave-info').innerHTML = `<span style="color:#ef4444; font-size:1.5rem;">GHOST</span><br><span style="font-size:0.9rem;">Respawn: ${player.respawnTimer}s</span>`;
-        else { let totalSec = Math.floor(frames / 60); document.getElementById('wave-info').innerHTML = `Wave: ${wave}<br><span style="font-size:0.9rem; color:#fff;">${String(Math.floor(totalSec/60)).padStart(2,'0')}:${String(totalSec%60).padStart(2,'0')}</span>`; }
+        else {
+            let statusTxt = waveState === 'BOSS' ? `<span style="color:#ef4444;">BOSS BATTLE</span>` : `Spawning: ${spawnedThisWave}/${totalEnemiesThisWave}`;
+            if(waveState === 'CLEARING') statusTxt = `Remaining: ${enemies.length}`;
+            document.getElementById('wave-info').innerHTML = `Wave: ${wave}<br><span style="font-size:0.9rem; color:#fff;">${statusTxt}</span>`; 
+        }
 
         if (peer && isHost) {
-            broadcast({ type: 'sync_game_state', enemies: enemies, spells: spells, particles: particles, allyShadows: allyShadows, wave: wave, frames: frames, towers: towers,
-                players: { host: { name: player.name, x: player.x, y: player.y, vx: player.vx, vy: player.vy, isMoving: player.isMoving, emoji: player.emoji, color: player.color, team: player.team, isShielded: player.isShielded, lionBuff: player.lionBuff, lastAtkFrame: player.lastAtkFrame, hp: player.hp, maxHp: player.maxHp, isDead: player.isDead }, ...remotePlayers }
+            broadcast({ type: 'sync_game_state', enemies: enemies, spells: spells, particles: particles, allyShadows: allyShadows, hazards: hazards, wave: wave, waveState: waveState, frames: frames, towers: towers,
+                players: { host: { name: player.name, x: player.x, y: player.y, vx: player.vx, vy: player.vy, isMoving: player.isMoving, emoji: player.emoji, color: player.color, team: player.team, isShielded: player.isShielded, lionBuff: player.lionBuff, slowTimer: player.slowTimer, lastAtkFrame: player.lastAtkFrame, hp: player.hp, maxHp: player.maxHp, isDead: player.isDead }, ...remotePlayers }
             });
+        }
+    }
+    
+    function startNextWave() {
+        let earned = 50 * Math.pow(1.5, wave - 1); 
+        saveData.gold += Math.floor(earned); 
+        addFloatText(`+ ${Math.floor(earned)} Gold!`, width/2 - 40, height/4);
+        if (peer) broadcast({type: 'float_text', text: `+ ${Math.floor(earned)} Gold!`, x: width/2 - 40, y: height/4, color: '#facc15'});
+        
+        wave++; if(wave > saveData.topWave) saveData.topWave = wave; saveGame();
+        prepareWave(wave);
+    }
+    
+    // Epic 5 Spells System (Used by Bosses and Shadows)
+    function castEpicSpell(caster, targetX, targetY, isAlly, baseDmg) {
+        let spellType = Math.floor(Math.random() * 5); // 0-4
+        let angle = Math.atan2(targetY - caster.y, targetX - caster.x);
+        
+        if (spellType === 0) { // Slow Fireball (Red)
+            spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6, life: 200, color: '#ef4444', isAlly: isAlly, dmg: baseDmg * 1.5, type: 'fire', size: 25 });
+        } else if (spellType === 1) { // Fast Ice (Blue - Slows target)
+            spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 15, vy: Math.sin(angle) * 15, life: 100, color: '#38bdf8', isAlly: isAlly, dmg: baseDmg * 0.8, type: 'ice', size: 15 });
+        } else if (spellType === 2) { // Shuriken (Grey - Passes through)
+            spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10, life: 150, color: '#94a3b8', isAlly: isAlly, dmg: baseDmg, type: 'shuriken', size: 20 });
+        } else if (spellType === 3) { // Lightning (Yellow - Instant high dmg path)
+            for(let i=1; i<=5; i++) {
+                spells.push({ x: caster.x + Math.cos(angle)*i*60, y: caster.y + Math.sin(angle)*i*60, vx: 0, vy: 0, life: 15, color: '#facc15', isAlly: isAlly, dmg: baseDmg * 1.2, type: 'lightning', size: 30 });
+            }
+        } else if (spellType === 4) { // Bomb Marker
+            hazards.push({ x: targetX, y: targetY, life: 120, radius: 100, color: isAlly ? '#a78bfa' : '#ef4444', isAlly: isAlly, dmg: baseDmg * 2 });
         }
     }
 
     function updateMonstersAndAI() {
-        if(vampAura.active) {
-            vampAura.framesLeft--;
-            if(frames % 15 === 0) { enemies.forEach(en => { if(Math.hypot(en.x - player.x, en.y - player.y) < 150) { en.hp -= 20; healPlayer(player.maxHp * 0.005); createParticles(en.x, en.y, '#dc2626', 2); } }); }
-            if(vampAura.framesLeft <= 0) vampAura.active = false;
-        }
-
+        // Spells update
         for(let i=spells.length-1; i>=0; i--) {
             let sp = spells[i]; sp.x += sp.vx; sp.y += sp.vy; sp.life--;
-            if (sp.isBomb) {
-                let targetPlayer = getNearestAlivePlayer(sp.x, sp.y);
-                if (targetPlayer && Math.hypot(targetPlayer.x - sp.x, targetPlayer.y - sp.y) < 40) { dealDamageToPlayer(targetPlayer, sp.dmg); createParticles(sp.x, sp.y, '#ef4444', 20); sp.life = 0; }
+            
+            let hitTarget = false;
+            if (sp.isPlayerSpell || sp.isAlly) {
+                enemies.forEach(en => {
+                    if(!hitTarget && Math.hypot(en.x - sp.x, en.y - sp.y) < (en.isBoss ? 70 : 40)) { 
+                        en.hp -= sp.dmg; createParticles(en.x, en.y, sp.color, 10); 
+                        if (sp.type === 'ice') en.speed *= 0.5; // Freeze effect on enemies
+                        if (sp.type !== 'shuriken' && sp.type !== 'lightning') sp.life = 0; hitTarget = true;
+                    }
+                });
             } else {
-                enemies.forEach(en => { if(Math.hypot(en.x - sp.x, en.y - sp.y) < (en.isBoss ? 70 : 40)) { en.hp -= 65 + getStatValue('atk'); createParticles(en.x, en.y, sp.color, 10); sp.life = 0; } });
+                let targetPlayer = getNearestAlivePlayer(sp.x, sp.y);
+                if (targetPlayer && Math.hypot(targetPlayer.x - sp.x, targetPlayer.y - sp.y) < sp.size + 20) {
+                    dealDamageToPlayer(targetPlayer, sp.dmg);
+                    if (sp.type === 'ice') {
+                         if (targetPlayer.id === "local") player.slowTimer = 120;
+                         // Sync slow would require sending, but letting clients resolve their own hits is okay for now
+                    }
+                    createParticles(sp.x, sp.y, sp.color, 15);
+                    if (sp.type !== 'shuriken' && sp.type !== 'lightning') sp.life = 0;
+                }
             }
             if(sp.life <= 0) spells.splice(i, 1);
         }
+        
+        // Hazards (Bombs) Update
+        for(let i=hazards.length-1; i>=0; i--) {
+            let hz = hazards[i]; hz.life--;
+            if (hz.life <= 0) {
+                // EXPLODE!
+                createParticles(hz.x, hz.y, hz.color, 50);
+                if (hz.isAlly) {
+                    enemies.forEach(en => { if (Math.hypot(en.x - hz.x, en.y - hz.y) < hz.radius) { en.hp -= hz.dmg; createParticles(en.x, en.y, '#fff', 5); }});
+                } else {
+                    let p = getNearestAlivePlayer(hz.x, hz.y);
+                    if (p && Math.hypot(p.x - hz.x, p.y - hz.y) < hz.radius) { dealDamageToPlayer(p, hz.dmg); }
+                }
+                hazards.splice(i, 1);
+            }
+        }
 
+        // Shadows AI
         for(let i=allyShadows.length-1; i>=0; i--) {
             let ally = allyShadows[i], target = null, minDist = 1000;
             let aSpeed = player.wizardBuff > 0 ? ally.speed * 1.5 : ally.speed;
             enemies.forEach(en => { let d = Math.hypot(en.x - ally.x, en.y - ally.y); if(d < minDist) { minDist = d; target = en; } });
             
             if(target) {
-                let angle = Math.atan2(target.y - ally.y, target.x - ally.x); ally.x += Math.cos(angle) * aSpeed; ally.y += Math.sin(angle) * aSpeed;
-                if(minDist < 60 && frames % 20 === 0) { target.hp -= (player.wizardBuff > 0 ? ally.dmg*1.5 : ally.dmg); createParticles(target.x, target.y, '#a78bfa', 10); }
+                if (minDist > 150) {
+                    let angle = Math.atan2(target.y - ally.y, target.x - ally.x); ally.x += Math.cos(angle) * aSpeed; ally.y += Math.sin(angle) * aSpeed;
+                } else {
+                    if (frames - ally.lastSpellFrame > 90) { // Cast spell every 1.5s
+                        castEpicSpell(ally, target.x, target.y, true, ally.dmg);
+                        ally.lastSpellFrame = frames;
+                    }
+                }
             } else {
                 let angle = Math.atan2(player.y - ally.y, player.x - ally.x); if(Math.hypot(player.x - ally.x, player.y - ally.y) > 100) { ally.x += Math.cos(angle) * aSpeed; ally.y += Math.sin(angle) * aSpeed; }
             }
             ally.hp -= 1; if(ally.hp <= 0) { createParticles(ally.x, ally.y, '#a78bfa', 30); allyShadows.splice(i, 1); }
         }
 
+        // Enemies AI
         for(let i=enemies.length-1; i>=0; i--) {
             let en = enemies[i];
             
             if(en.isBoss && en.hp < (en.maxHp * 0.3) && !en.enraged) {
-                en.enraged = true; en.size *= 1.5; en.speed *= 2; en.dmg *= 2;
+                en.enraged = true; en.size *= 1.3; en.speed *= 1.5; en.dmg *= 1.5;
                 createParticles(en.x, en.y, '#ff0000', 50);
             }
 
             if(en.hp <= 0) { 
                 if(en.isBoss) {
-                    if (en.type === 'phaseBoss' && en.phases > 1) { 
-                        en.phases--; en.hp = en.maxHp; en.enraged = false; en.size = en.originalSize; en.speed = en.originalSpeed; en.dmg = en.originalDmg;
-                        createParticles(en.x, en.y, '#ffffff', 50); continue;
+                    if(!saveData.unlockedBosses.includes(en.emoji)) { 
+                        saveData.unlockedBosses.push(en.emoji); saveGame(); 
+                        addFloatText("New Shadow Unlocked!", width/2 - 80, height/2 - 40, '#a78bfa');
+                        if (peer) broadcast({type: 'float_text', text: "New Shadow Unlocked!", x: width/2 - 80, y: height/2 - 40, color: '#a78bfa'});
                     }
-                    if (en.type === 'splitBoss' && en.isOriginal) { 
-                        for(let k=0; k<3; k++) { enemies.push({ x: en.x + (Math.random()-0.5)*100, y: en.y + (Math.random()-0.5)*100, emoji: '👾', hp: en.maxHp, maxHp: en.maxHp, speed: en.speed, dmg: en.dmg, isBoss: true, size: en.size * 0.7, type: 'splitBoss', isOriginal: false, lastSpellFrame: frames, enraged: false }); }
-                    }
-                    if(!saveData.unlockedBosses.includes(en.emoji)) { saveData.unlockedBosses.push(en.emoji); saveGame(); }
                     addFloatText("Boss Defeated!", width/2 - 50, height/2, '#ca8a04');
                     if (peer) broadcast({type: 'float_text', text: "Boss Defeated!", x: width/2 - 50, y: height/2, color: '#ca8a04'});
                 }
@@ -878,23 +1031,15 @@
                 let distToTarget = Math.hypot(targetPlayer.x - en.x, targetPlayer.y - en.y);
                 
                 if (en.isBoss) {
-                    if (frames - en.lastSpellFrame > 240 && distToTarget > 250 && en.type !== 'bomber' && en.type !== 'auraBoss') { 
-                        en.x = targetPlayer.x + (Math.random() - 0.5) * 150; en.y = targetPlayer.y + (Math.random() - 0.5) * 150;
-                        createParticles(en.x, en.y, '#8b5cf6', 40); en.lastSpellFrame = frames;
+                    if (frames - en.lastSpellFrame > (en.enraged ? 60 : 90)) { // Cast every 1.5s or 1s if enraged
+                        castEpicSpell(en, targetPlayer.x, targetPlayer.y, false, en.dmg);
+                        en.lastSpellFrame = frames;
                     }
-                    if (en.type === 'vampire' && frames % 120 === 0) { createParticles(en.x, en.y, '#dc2626', 20); if (distToTarget < 200) dealDamageToPlayer(targetPlayer, 30); } 
-                    else if (en.type === 'void' && frames % 90 === 0) { let spellAngle = Math.atan2(targetPlayer.y - en.y, targetPlayer.x - en.x); spells.push({ x: en.x, y: en.y, vx: Math.cos(spellAngle) * 10, vy: Math.sin(spellAngle) * 10, life: 80, color: '#a855f7' }); }
-                    else if (en.type === 'abyss' && frames % 100 === 0) { en.speed = 10; setTimeout(() => { en.speed = 4.5; }, 1500); createParticles(en.x, en.y, '#f59e0b', 30); }
-                    else if (en.type === 'bomber' && frames % 120 === 0) {
-                        let spellAngle = Math.atan2(targetPlayer.y - en.y, targetPlayer.x - en.x);
-                        spells.push({ x: en.x, y: en.y, vx: Math.cos(spellAngle) * 12, vy: Math.sin(spellAngle) * 12, life: 100, color: '#f97316', isBomb: true, dmg: en.dmg });
-                    }
-                    else if (en.type === 'auraBoss') {
-                        if (distToTarget < 180 && frames % 30 === 0) dealDamageToPlayer(targetPlayer, en.dmg * 0.4);
-                    }
+                    if (distToTarget > 300) { en.x += Math.cos(angle) * en.speed; en.y += Math.sin(angle) * en.speed; } // Keep some distance
+                } else {
+                    en.x += Math.cos(angle) * en.speed; en.y += Math.sin(angle) * en.speed;
                 }
-
-                en.x += Math.cos(angle) * en.speed; en.y += Math.sin(angle) * en.speed;
+                
                 let attackRange = en.isBoss ? 70 : 35;
                 if(distToTarget < attackRange && frames % 20 === 0) dealDamageToPlayer(targetPlayer, en.dmg);
             } else { en.x += (Math.random() - 0.5) * 3; en.y += (Math.random() - 0.5) * 3; }
@@ -932,11 +1077,11 @@
         if (target.isShielded || target.isDead) return;
         if (target.id === "local" || !peer) {
             player.hp -= dmg; player.lastHitFrame = frames; updateHPBar();
-            addFloatText(`-${dmg}`, player.x, player.y - 40, '#ef4444');
+            addFloatText(`-${Math.floor(dmg)}`, player.x, player.y - 40, '#ef4444');
             if(player.hp <= 0) handleLocalDeath(); 
         } else {
             target.hp -= dmg;
-            if (peer) broadcast({type: 'float_text', text: `-${dmg}`, x: target.x, y: target.y - 40, color: '#ef4444'});
+            if (peer) broadcast({type: 'float_text', text: `-${Math.floor(dmg)}`, x: target.x, y: target.y - 40, color: '#ef4444'});
         }
     }
 
@@ -999,24 +1144,41 @@
             });
         }
         
-        if(vampAura.active) { ctx.beginPath(); ctx.arc(player.x, player.y, 150, 0, Math.PI*2); ctx.fillStyle = 'rgba(220, 38, 38, 0.2)'; ctx.fill(); ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 2; ctx.stroke(); }
+        // Hazards (Bombs)
+        hazards.forEach(hz => {
+            ctx.beginPath(); ctx.arc(hz.x, hz.y, hz.radius, 0, Math.PI*2);
+            ctx.fillStyle = hz.color; ctx.globalAlpha = 0.2 + (Math.sin(frames * 0.2) * 0.1); ctx.fill();
+            ctx.strokeStyle = hz.color; ctx.lineWidth = 2; ctx.stroke();
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Arial'; ctx.fillText(Math.ceil(hz.life/60) + 's', hz.x, hz.y);
+        });
 
-        spells.forEach(sp => { ctx.fillStyle = sp.color; ctx.shadowBlur = 10; ctx.shadowColor = sp.color; ctx.beginPath(); ctx.arc(sp.x, sp.y, sp.isBomb ? 20 : 15, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0; });
+        spells.forEach(sp => { 
+            ctx.fillStyle = sp.color; ctx.shadowBlur = 10; ctx.shadowColor = sp.color; 
+            if (sp.type === 'shuriken') {
+                ctx.save(); ctx.translate(sp.x, sp.y); ctx.rotate(frames * 0.5);
+                ctx.fillRect(-sp.size/2, -sp.size/2, sp.size, sp.size); ctx.restore();
+            } else if (sp.type === 'lightning') {
+                ctx.fillRect(sp.x - sp.size/4, sp.y - sp.size*2, sp.size/2, sp.size*4);
+            } else {
+                ctx.beginPath(); ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI*2); ctx.fill(); 
+            }
+            ctx.shadowBlur = 0; 
+        });
+        
         ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
         
         enemies.forEach(en => {
             if (en.enraged) { ctx.shadowBlur = 20; ctx.shadowColor = '#ff0000'; }
-            if (en.type === 'auraBoss') { ctx.beginPath(); ctx.arc(en.x, en.y, 180, 0, Math.PI*2); ctx.fillStyle = 'rgba(239, 68, 68, 0.1)'; ctx.fill(); ctx.strokeStyle = '#ef4444'; ctx.stroke(); }
 
             if(en.isBoss) drawBoldStickman(ctx, en.x, en.y, en.enraged ? '#b91c1c' : '#ef4444', en.emoji, true, frames);
             else { ctx.font = `${en.size}px Arial`; ctx.fillText(en.emoji, en.x, en.y + Math.sin(frames * 0.1) * 3); }
             ctx.shadowBlur = 0;
-            ctx.fillStyle = 'red'; ctx.fillRect(en.x - en.size/2, en.y - 12, en.size, 6); ctx.fillStyle = '#10b981'; ctx.fillRect(en.x - en.size/2, en.y - 12, (en.hp/en.maxHp)*en.size, 6);
-            if (en.type === 'phaseBoss') { ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.fillText(`x${en.phases}`, en.x + en.size/2 + 10, en.y - 8); }
+            ctx.fillStyle = '#1e293b'; ctx.fillRect(en.x - en.size/2, en.y - 12, en.size, 6); ctx.fillStyle = en.isBoss ? '#facc15' : '#10b981'; ctx.fillRect(en.x - en.size/2, en.y - 12, (en.hp/en.maxHp)*en.size, 6);
         });
 
         allyShadows.forEach(ally => {
-            let color = player.wizardBuff > 0 ? '#3b82f6' : '#a78bfa';
+            let color = '#a78bfa';
             drawBoldStickman(ctx, ally.x, ally.y, color, ally.emoji, true, frames, true);
             ctx.fillStyle = '#4c1d95'; ctx.fillRect(ally.x - 45, ally.y - 12, 90, 6); ctx.fillStyle = color; ctx.fillRect(ally.x - 45, ally.y - 12, (ally.hp/ally.maxHp)*90, 6);
         });
@@ -1026,6 +1188,7 @@
             if (id !== myClientId) {
                 let isPlayerAttacking = (frames - rp.lastAtkFrame) < 15;
                 if(rp.isShielded && !rp.isDead) { ctx.beginPath(); ctx.arc(rp.x, rp.y, 65, 0, Math.PI*2); ctx.fillStyle = 'rgba(59, 130, 246, 0.2)'; ctx.fill(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.stroke(); }
+                if(rp.slowTimer > 0 && !rp.isDead) { ctx.beginPath(); ctx.arc(rp.x, rp.y, 45, 0, Math.PI*2); ctx.fillStyle = 'rgba(56, 189, 248, 0.4)'; ctx.fill(); }
                 if (rp.team !== '#000000' && !rp.isDead) { ctx.shadowBlur = 10; ctx.shadowColor = rp.team; }
                 
                 if(rp.isDead) ctx.globalAlpha = 0.3;
@@ -1038,6 +1201,7 @@
 
         let isLocalAttacking = (frames - player.lastAtkFrame) < 15;
         if(player.isShielded && !player.isDead) { ctx.beginPath(); ctx.arc(player.x, player.y, 65, 0, Math.PI*2); ctx.fillStyle = 'rgba(59, 130, 246, 0.3)'; ctx.fill(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3; ctx.stroke(); }
+        if(player.slowTimer > 0 && !player.isDead) { ctx.beginPath(); ctx.arc(player.x, player.y, 45, 0, Math.PI*2); ctx.fillStyle = 'rgba(56, 189, 248, 0.4)'; ctx.fill(); }
         if(player.lionBuff > 0 && !player.isDead) { ctx.shadowBlur = 20; ctx.shadowColor = '#f59e0b'; }
         if(player.team !== '#000000' && !player.isDead) { ctx.shadowBlur = 15; ctx.shadowColor = player.team; }
         
@@ -1051,4 +1215,6 @@
 </script>
 </body>
 </html>
+
+```
 
