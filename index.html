@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,115 +11,159 @@
         
         #gameCanvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* --- Redeem Code UI --- */
-        .redeem-container { position: absolute; top: 10px; left: 10px; z-index: 25; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; border: 1px solid #475569; display: flex; gap: 5px; flex-direction: column;}
-        .redeem-input { padding: 5px; border-radius: 4px; border: 1px solid #38bdf8; background: #0f172a; color: #fff; font-size: 0.9rem; }
-        .redeem-btn { background: #38bdf8; color: #0f172a; border: none; padding: 5px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        /* Top Left Header UI (Account ID & Redeem) */
+        .top-left-panel { position: absolute; top: 10px; left: 10px; z-index: 25; display: flex; flex-direction: column; gap: 8px; }
+        .acc-card { background: rgba(15, 23, 42, 0.85); padding: 8px 12px; border-radius: 10px; border: 1px solid #38bdf8; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .acc-id-txt { font-size: 0.85rem; color: #facc15; font-weight: bold; }
+        .btn-sm { background: #38bdf8; color: #0f172a; border: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
+        .btn-sm:hover { background: #7dd3fc; }
 
-        /* --- Professional Lobby --- */
+        .redeem-container { background: rgba(0,0,0,0.6); padding: 8px; border-radius: 8px; border: 1px solid #475569; display: flex; gap: 5px; flex-direction: column;}
+        .redeem-input { padding: 4px; border-radius: 4px; border: 1px solid #38bdf8; background: #0f172a; color: #fff; font-size: 0.8rem; }
+
+        /* MLBB Style Friend Panel (Right Side Draw) */
+        .friend-drawer { position: absolute; top: 10px; right: 10px; z-index: 25; width: 220px; max-height: 80vh; background: rgba(15, 23, 42, 0.9); border: 1px solid #a78bfa; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); transition: transform 0.3s ease; }
+        .friend-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+        .friend-title { font-size: 0.9rem; font-weight: bold; color: #a78bfa; }
+        .friend-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 60vh; padding-right: 2px; }
+        .friend-card { background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; border-radius: 8px; padding: 6px; display: flex; align-items: center; justify-content: space-between; }
+        .friend-info { display: flex; align-items: center; gap: 8px; }
+        .friend-avatar { font-size: 24px; background: rgba(255,255,255,0.1); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; }
+        .friend-name { font-size: 0.8rem; font-weight: bold; color: #fff; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .status-online { background: #10b981; box-shadow: 0 0 5px #10b981; }
+        .status-offline { background: #64748b; }
+        .btn-invite { background: #10b981; color: white; border: none; border-radius: 50%; width: 26px; height: 26px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .btn-invite:disabled { background: #475569; cursor: not-allowed; }
+
+        /* Main Lobby UI */
         #lobby { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1b4b 0%, #0f172a 100%); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; }
-        .title { font-size: 2.5rem; font-weight: 900; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase; text-align: center; }
+        .title { font-size: 2.3rem; font-weight: 900; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase; text-align: center; }
         
-        .name-input-container { margin-bottom: 15px; width: 100%; max-width: 300px; }
-        #player-name { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #a78bfa; background: #0f172a; color: #facc15; font-size: 1.2rem; text-align: center; font-weight: bold; outline: none; }
+        .name-input-container { margin-bottom: 15px; width: 100%; max-width: 280px; }
+        #player-name { width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #a78bfa; background: #0f172a; color: #facc15; font-size: 1.1rem; text-align: center; font-weight: bold; outline: none; }
 
-        .save-info { background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 20px; margin-bottom: 10px; color: #facc15; font-weight: bold; border: 1px solid #ca8a04; display: flex; gap: 15px; font-size: 1.1rem; }
+        .save-info { background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 20px; margin-bottom: 10px; color: #facc15; font-weight: bold; border: 1px solid #ca8a04; display: flex; gap: 15px; font-size: 1rem; }
 
-        .hero-showcase { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .hero-avatar { font-size: 50px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); margin-bottom: 5px; }
-        .hero-name { font-size: 1.2rem; font-weight: bold; color: #fbbf24; margin-bottom: 5px; }
-        .btn-change { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .hero-showcase { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .hero-avatar { font-size: 45px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); margin-bottom: 5px; }
+        .hero-name { font-size: 1.1rem; font-weight: bold; color: #fbbf24; margin-bottom: 5px; }
+        .btn-change { background: #334155; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         
         /* Customization Controls */
         .custom-section { margin-bottom: 15px; text-align: center; }
-        .color-title { font-size: 0.9rem; color: #38bdf8; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
-        .color-grid { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; max-width: 300px; margin-bottom: 10px; }
-        .color-btn { width: 35px; height: 35px; border-radius: 50%; border: 3px solid #1e293b; cursor: pointer; transition: 0.2s; }
+        .color-title { font-size: 0.85rem; color: #38bdf8; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; }
+        .color-grid { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; max-width: 280px; margin-bottom: 8px; }
+        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #1e293b; cursor: pointer; transition: 0.2s; }
         .color-btn.active { border-color: #fff; transform: scale(1.1); }
 
         /* Modes Buttons */
-        .mode-container { display: flex; gap: 8px; flex-direction: column; width: 100%; max-width: 300px; }
-        .btn-mode { padding: 12px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; }
+        .mode-container { display: flex; gap: 8px; flex-direction: column; width: 100%; max-width: 280px; }
+        .btn-mode { padding: 10px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: bold; cursor: pointer; text-transform: uppercase; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; }
         .btn-offline { background: linear-gradient(45deg, #10b981, #059669); }
         .btn-host { background: linear-gradient(45deg, #f59e0b, #d97706); }
         .btn-join { background: linear-gradient(45deg, #3b82f6, #2563eb); }
         .btn-stats { background: linear-gradient(45deg, #8b5cf6, #6d28d9); }
 
-        /* UI Modals */
+        /* Modals */
         .modal-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 30; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: #1e293b; padding: 25px; border-radius: 15px; width: 95%; max-width: 500px; max-height: 85vh; overflow-y: auto; border: 1px solid #475569; text-align: center; }
+        .modal-content { background: #1e293b; padding: 20px; border-radius: 15px; width: 95%; max-width: 480px; max-height: 85vh; overflow-y: auto; border: 1px solid #475569; text-align: center; }
         
-        /* Hero Shop Grid */
         .hero-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
-        .hero-shop-item { background: #334155; border: 1px solid #475569; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .hero-shop-item { background: #334155; border: 1px solid #475569; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .hero-shop-item .emoji { font-size: 35px; }
-        .hero-shop-item .price { font-size: 0.9rem; font-weight: bold; margin-top: 5px; color: #facc15; }
-        .hero-shop-item button { margin-top: 8px; padding: 5px 15px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+        .hero-shop-item .price { font-size: 0.85rem; font-weight: bold; margin-top: 5px; color: #facc15; }
+        .hero-shop-item button { margin-top: 8px; padding: 5px 12px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
         .btn-buy { background: #10b981; color: white; }
         .btn-buy:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
         .btn-equip { background: #3b82f6; color: white; }
         
-        .players-list { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; }
+        .players-list { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; }
         .player-row { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        /* Stats UI */
-        .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #334155; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 8px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #334155; }
         .stat-info { text-align: left; }
-        .stat-name { font-weight: bold; color: #38bdf8; font-size: 0.95rem; }
+        .stat-name { font-weight: bold; color: #38bdf8; font-size: 0.9rem; }
         .stat-lvl { font-size: 0.8rem; color: #94a3b8; }
-        .btn-upg { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-upg { background: #10b981; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-upg:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
 
-        .boss-index-container { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap;}
-        .boss-index-card { background: #334155; padding: 10px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; width: 80px; position: relative;}
+        .boss-index-container { display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap;}
+        .boss-index-card { background: #334155; padding: 8px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; width: 75px; position: relative;}
         .boss-index-card.selected { border-color: #facc15; background: #475569; }
         .boss-index-card.locked { opacity: 0.3; cursor: not-allowed; }
-        .selection-badge { position: absolute; top: -5px; right: -5px; background: #facc15; color: #000; font-weight: bold; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .selection-badge { position: absolute; top: -5px; right: -5px; background: #facc15; color: #000; font-weight: bold; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+
+        /* Invite Notification Popup */
+        #invite-toast { display: none; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; background: #1e293b; border: 2px solid #38bdf8; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center; }
 
         #end-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 50; flex-direction: column; align-items: center; justify-content: center; }
-        #end-title { font-size: 4.5rem; font-weight: 900; letter-spacing: 5px; text-transform: uppercase; text-shadow: 0 0 20px rgba(0,0,0,0.8); margin-bottom: 30px; text-align: center;}
+        #end-title { font-size: 4rem; font-weight: 900; letter-spacing: 5px; text-transform: uppercase; text-shadow: 0 0 20px rgba(0,0,0,0.8); margin-bottom: 20px; text-align: center;}
         .victory-text { color: #facc15; text-shadow: 0 0 30px #ca8a04; }
         .defeat-text { color: #ef4444; text-shadow: 0 0 30px #b91c1c; }
 
-        /* Game UI */
+        /* In-Game UI Controls */
         #game-ui { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-        .joystick-zone { pointer-events: auto; position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
-        .joystick-knob { width: 55px; height: 55px; background: rgba(255, 255, 255, 0.5); border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .joystick-zone { pointer-events: auto; position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
+        .joystick-knob { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.5); border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 
-        .actions-zone { pointer-events: auto; position: absolute; bottom: 30px; right: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end;}
-        .act-btn { width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: bold; font-size: 10px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); position: relative; overflow: hidden; }
-        .btn-atk { background: #ef4444; width: 75px; height: 75px; font-size: 14px; grid-column: 2; grid-row: 2; }
-        .btn-summon { background: #7c3aed; width: 60px; height: 60px; grid-column: 1 / span 2; justify-self: center; border-color: #a78bfa; margin-bottom: 5px; display: flex; flex-direction: column; opacity: 0.5;}
+        .actions-zone { pointer-events: auto; position: absolute; bottom: 25px; right: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end;}
+        .act-btn { width: 55px; height: 55px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: bold; font-size: 10px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); position: relative; overflow: hidden; }
+        .btn-atk { background: #ef4444; width: 70px; height: 70px; font-size: 13px; grid-column: 2; grid-row: 2; }
+        .btn-summon { background: #7c3aed; width: 55px; height: 55px; grid-column: 1 / span 2; justify-self: center; border-color: #a78bfa; margin-bottom: 5px; opacity: 0.5;}
         .btn-summon.unlocked { opacity: 1; border-color: #d8b4fe; box-shadow: 0 0 15px #a78bfa; }
         .cooldown-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: rgba(0,0,0,0.7); }
 
-        .hud-top { position: absolute; top: 20px; left: 20px; pointer-events: auto; display: flex; flex-direction: column; gap: 5px; }
-        .hp-bar-bg { width: 180px; height: 18px; background: rgba(0,0,0,0.6); border-radius: 10px; border: 2px solid #334155; overflow: hidden; }
+        .hud-top { position: absolute; top: 15px; left: 15px; pointer-events: auto; display: flex; flex-direction: column; gap: 5px; }
+        .hp-bar-bg { width: 160px; height: 16px; background: rgba(0,0,0,0.6); border-radius: 10px; border: 2px solid #334155; overflow: hidden; }
         .hp-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); }
-        .hud-gold { font-weight: bold; color: #facc15; font-size: 1.1rem; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 8px; width: fit-content;}
+        .hud-gold { font-weight: bold; color: #facc15; font-size: 1rem; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 8px; width: fit-content;}
         
-        #wave-info { position: absolute; top: 20px; right: 20px; color: #f59e0b; font-weight: bold; font-size: 1.3rem; background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 8px; text-align: center; }
-        .float-txt { position: absolute; font-weight: bold; font-size: 18px; text-shadow: 0 2px 5px #000; animation: floatUp 1.2s forwards; pointer-events: none; z-index: 100; }
+        #wave-info { position: absolute; top: 15px; right: 15px; color: #f59e0b; font-weight: bold; font-size: 1.1rem; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 8px; text-align: center; }
+        .float-txt { position: absolute; font-weight: bold; font-size: 16px; text-shadow: 0 2px 5px #000; animation: floatUp 1.2s forwards; pointer-events: none; z-index: 100; }
 
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-35px); } }
     </style>
 </head>
 <body>
 
-    <!-- Lobby -->
-    <div id="lobby">
-        <div class="redeem-container">
-            <span style="font-size: 0.8rem; font-weight: bold; color: #38bdf8;">Redeem Code</span>
-            <div style="display:flex; gap: 5px;">
-                <input type="text" id="redeem-input" class="redeem-input" placeholder="Enter Code">
-                <button class="redeem-btn" onclick="applyRedeemCode()">Claim</button>
+    <!-- Top Left Account Panel -->
+    <div class="top-left-panel">
+        <div class="acc-card">
+            <div>
+                <div style="font-size: 0.7rem; color: #94a3b8;">MY ID</div>
+                <div class="acc-id-txt" id="my-acc-id">Connecting...</div>
             </div>
+            <button class="btn-sm" onclick="copyMyId()">Copy ID</button>
+            <button class="btn-sm" style="background: #a78bfa; color: white;" onclick="openAddFriendModal()">+ Add Friend</button>
         </div>
 
-        <div class="title" style="margin-top: 40px;">Shadow Arena<br><span style="font-size:1.1rem; color:#a78bfa;">P2P Multiplayer Survival</span></div>
+        <div class="redeem-container">
+            <span style="font-size: 0.75rem; font-weight: bold; color: #38bdf8;">Redeem Code</span>
+            <div style="display:flex; gap: 5px;">
+                <input type="text" id="redeem-input" class="redeem-input" placeholder="Enter Code">
+                <button class="btn-sm" onclick="applyRedeemCode()">Claim</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MLBB Style Friend Panel -->
+    <div class="friend-drawer">
+        <div class="friend-header">
+            <span class="friend-title">👥 FRIENDS LIST</span>
+            <span style="font-size:0.75rem; color:#94a3b8;" id="friend-count-txt">(0)</span>
+        </div>
+        <div class="friend-list" id="friend-list-ui">
+            <!-- Friend Cards Inserted Here -->
+        </div>
+    </div>
+
+    <!-- Lobby -->
+    <div id="lobby">
+        <div class="title" style="margin-top: 30px;">Shadow Arena<br><span style="font-size:1rem; color:#a78bfa;">Multiplayer Survival</span></div>
         
         <div class="name-input-container">
-            <input type="text" id="player-name" placeholder="Enter Your Name" maxlength="12">
+            <input type="text" id="player-name" placeholder="Enter Name" maxlength="12">
         </div>
 
         <div class="save-info">
@@ -135,87 +178,105 @@
         </div>
 
         <div class="custom-section">
-            <div class="color-title">Choose Stickman Color</div>
+            <div class="color-title">Stickman Color</div>
             <div class="color-grid" id="color-grid"></div>
 
-            <div class="color-title" style="margin-top: 10px;">Choose Team Color (Black = Solo/PVP)</div>
+            <div class="color-title" style="margin-top: 8px;">Team Color (Black = Solo/PVP)</div>
             <div class="color-grid" id="team-grid"></div>
         </div>
 
         <div class="mode-container">
             <button class="btn-mode btn-offline" onclick="startOfflineGame()">Play Solo (Offline)</button>
-            <button class="btn-mode btn-host" onclick="setupMultiplayerLobby(true)">Host Game</button>
-            <button class="btn-mode btn-join" onclick="setupMultiplayerLobby(false)">Join Game</button>
+            <button class="btn-mode btn-host" onclick="setupMultiplayerLobby(true)">Create Lobby</button>
+            <button class="btn-mode btn-join" onclick="setupMultiplayerLobby(false)">Join Room</button>
             <button class="btn-mode btn-stats" onclick="openStatsModal()">STATS / UPGRADES</button>
+        </div>
+    </div>
+
+    <!-- Invite Notification Pop-up -->
+    <div id="invite-toast">
+        <div id="invite-msg-txt" style="font-weight: bold; margin-bottom: 8px; color: #facc15;">Invited you to play!</div>
+        <div style="display:flex; gap: 10px; justify-content: center;">
+            <button class="btn-sm" style="background:#10b981; color:white; padding:6px 14px;" onclick="acceptGameInvite()">Accept</button>
+            <button class="btn-sm" style="background:#ef4444; color:white; padding:6px 14px;" onclick="declineGameInvite()">Decline</button>
+        </div>
+    </div>
+
+    <!-- Add Friend Modal -->
+    <div id="add-friend-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 380px;">
+            <h2 style="color: #38bdf8;">Add Friend</h2>
+            <p style="font-size:0.8rem; color:#cbd5e1; margin: 8px 0;">Paste your friend's Account ID below:</p>
+            <input type="text" id="friend-id-input" placeholder="Enter Account ID" style="padding: 10px; border-radius: 6px; border: 1px solid #38bdf8; width: 100%; background: #0f172a; color: white; text-align: center; font-weight: bold;">
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-change" style="background:#10b981; flex:1;" onclick="confirmAddFriend()">Add</button>
+                <button class="btn-change" style="background:#ef4444; flex:1;" onclick="hideModal('add-friend-modal')">Cancel</button>
+            </div>
         </div>
     </div>
 
     <!-- Multiplayer Lobby Modal -->
     <div id="mp-lobby-modal" class="modal-overlay">
-        <!-- Inside content remains the same as before -->
         <div class="modal-content">
             <h2 id="mp-title" style="color: #38bdf8;">Multiplayer Lobby</h2>
-            <div id="mp-code-container" style="margin: 15px 0; font-size: 1.2rem; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px;">
-                Room Code: <span id="room-code-txt" style="color: #facc15; font-weight: bold;">Generating...</span>
+            <div id="mp-code-container" style="margin: 12px 0; font-size: 1.1rem; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 8px;">
+                Room ID: <span id="room-code-txt" style="color: #facc15; font-weight: bold;">Generating...</span>
             </div>
-            <div id="join-input-container" style="display: none; margin: 15px 0;">
-                <input type="text" id="join-code-input" placeholder="Enter Room Code" style="padding: 10px; border-radius: 6px; border: 1px solid #475569; width: 80%; background: #0f172a; color: white; text-align: center; font-size: 1.1rem;">
-                <button class="btn-change" style="margin-top: 10px; background: #3b82f6;" onclick="joinRoomSubmit()">Connect</button>
+            <div id="join-input-container" style="display: none; margin: 12px 0;">
+                <input type="text" id="join-code-input" placeholder="Enter Room ID" style="padding: 8px; border-radius: 6px; border: 1px solid #475569; width: 80%; background: #0f172a; color: white; text-align: center; font-size: 1rem;">
+                <button class="btn-change" style="margin-top: 8px; background: #3b82f6;" onclick="joinRoomSubmit()">Connect</button>
             </div>
-            <p style="color: #cbd5e1; text-align: left; margin-bottom: 5px; font-weight: bold;">Players Connected:</p>
+            <p style="color: #cbd5e1; text-align: left; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem;">Connected Players:</p>
             <div class="players-list" id="mp-players-list"></div>
             
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
                 <button id="btn-start-mp" class="btn-change" style="background:#10b981; display:none;" onclick="startMultiplayerGame()">Start Game</button>
                 <button class="btn-change" style="background:#ef4444;" onclick="leaveMultiplayer()">Leave Lobby</button>
             </div>
         </div>
     </div>
 
-    <!-- Stats & Boss Index Modal -->
+    <!-- Stats Modal -->
     <div id="stats-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 style="color: #a78bfa;">Upgrade Stats</h2>
-            <div style="font-size: 1.4rem; color: #facc15; font-weight: bold; margin-bottom: 10px;" id="modal-gold">🪙 0</div>
+            <div style="font-size: 1.3rem; color: #facc15; font-weight: bold; margin-bottom: 10px;" id="modal-gold">🪙 0</div>
             <div id="stats-container"></div>
-            
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #475569;">
-            
-            <h3 style="color: #facc15;">Boss Index (Unlocks Companion Shadows)</h3>
-            <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">Max Shadows: <span id="max-shadows-txt">1</span></div>
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #475569;">
+            <h3 style="color: #facc15;">Boss Index (Shadow Companions)</h3>
+            <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px;">Max Shadows: <span id="max-shadows-txt">1</span></div>
             <div class="boss-index-container" id="boss-index-list"></div>
-
-            <button class="btn-change" style="margin-top:20px; width:100%; background:#ef4444;" onclick="hideModal('stats-modal')">Close</button>
+            <button class="btn-change" style="margin-top:15px; width:100%; background:#ef4444;" onclick="hideModal('stats-modal')">Close</button>
         </div>
     </div>
 
-    <!-- Hero Selection / Shop Modal -->
+    <!-- Hero Shop Modal -->
     <div id="hero-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 style="color: #38bdf8;">Hero Shop</h2>
-            <div style="font-size: 1.2rem; color: #facc15; font-weight: bold; margin-bottom: 10px;" id="shop-gold">🪙 0</div>
+            <div style="font-size: 1.1rem; color: #facc15; font-weight: bold; margin-bottom: 10px;" id="shop-gold">🪙 0</div>
             <div class="hero-grid" id="hero-grid-container"></div>
-            <button class="btn-change" style="margin-top:20px; width:100%; background:#ef4444;" onclick="hideModal('hero-modal')">Close</button>
+            <button class="btn-change" style="margin-top:15px; width:100%; background:#ef4444;" onclick="hideModal('hero-modal')">Close</button>
         </div>
     </div>
 
-    <!-- End Game MLBB Screen -->
+    <!-- End Game Screen -->
     <div id="end-screen">
         <div id="end-title" class="defeat-text">DEFEAT</div>
-        <div id="end-subtitle" style="color:#cbd5e1; font-size:1.2rem; margin-bottom:20px;"></div>
-        <button class="btn-change" style="font-size: 1.2rem; padding: 15px 30px; background: #3b82f6;" onclick="location.reload()">Back to Main Menu</button>
+        <div id="end-subtitle" style="color:#cbd5e1; font-size:1.1rem; margin-bottom:20px;"></div>
+        <button class="btn-change" style="font-size: 1.1rem; padding: 12px 24px; background: #3b82f6;" onclick="location.reload()">Back to Menu</button>
     </div>
 
     <!-- Game UI -->
     <div id="game-ui">
         <div class="hud-top">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span id="hud-emoji" style="font-size: 28px;">🤖</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span id="hud-emoji" style="font-size: 24px;">🤖</span>
                 <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-fill"></div></div>
             </div>
             <div class="hud-gold" id="ingame-gold">🪙 0</div>
         </div>
-        <div id="wave-info">Wave: 1<br><span id="timer-txt" style="font-size:0.9rem; color:#fff;">Spawning...</span></div>
+        <div id="wave-info">Wave: 1<br><span id="timer-txt" style="font-size:0.85rem; color:#fff;">Spawning...</span></div>
 
         <div class="joystick-zone" id="joy-zone"><div class="joystick-knob" id="joy-knob"></div></div>
         <div class="actions-zone">
@@ -230,23 +291,18 @@
     <canvas id="gameCanvas"></canvas>
 
 <script>
-    // --- 1. Memory / Save System ---
-    let saveData = JSON.parse(localStorage.getItem('shadowSaveV6')) || {
+    // --- 1. Save Data System ---
+    let saveData = JSON.parse(localStorage.getItem('shadowSaveV7')) || {
         topWave: 1, gold: 0, 
         checkpointWave: 1, 
-        unlockedBosses: [], // Start with NO bosses unlocked
+        unlockedBosses: [], 
         unlockedHeroes: ['🤖'], 
-        selectedShadowBosses: [], // Array for multiple selections
+        selectedShadowBosses: [], 
+        friends: [], // [{ id, name, emoji }]
         stats: { atk: 1, dash: 1, shield: 1, spell: 1, shadow: 1, maxShadows: 1, pSpeed: 1, pHp: 1, sSpeed: 1, sDmg: 1, sHp: 1, spellDur: 1, shieldDur: 1 }
     };
-    
-    // Migration from old saves
-    if (!saveData.selectedShadowBosses) {
-        saveData.selectedShadowBosses = saveData.selectedShadowBoss ? [saveData.selectedShadowBoss] : [];
-    }
-    if (saveData.stats.maxShadows === undefined) saveData.stats.maxShadows = 1;
 
-    // Add default values if missing
+    if (!saveData.friends) saveData.friends = [];
     if (!saveData.savedColor) saveData.savedColor = '#ffffff';
     if (!saveData.savedTeam) saveData.savedTeam = '#000000';
     if (!saveData.savedHeroEmoji) saveData.savedHeroEmoji = '🤖';
@@ -258,15 +314,15 @@
         dash: { name: "Dash CD", base: 180, step: -3 },
         shield: { name: "Shield CD", base: 400, step: -6 },
         spell: { name: "Spell CD", base: 600, step: -8 },     
-        shadow: { name: "Shadow CD", base: 3600, step: -50 }, // Reduced base CD for fun
-        maxShadows: { name: "Max Shadow Output", base: 1, step: 1 }, // Custom cost formula used
+        shadow: { name: "Shadow CD", base: 3600, step: -50 },
+        maxShadows: { name: "Max Shadow Output", base: 1, step: 1 },
         pSpeed: { name: "Player Speed", base: 7, step: 0.2 },
         pHp: { name: "Player Health", base: 1000, step: 100 },
         sSpeed: { name: "Shadow Speed", base: 6, step: 0.3 },
         sDmg: { name: "Shadow Damage", base: 180, step: 30 },
         sHp: { name: "Shadow Health", base: 3000, step: 400 },
-        spellDur: { name: "Spell Duration (Multiplier)", base: 1, step: 0.1 },
-        shieldDur: { name: "Shield Duration (Frames)", base: 150, step: 15 } 
+        spellDur: { name: "Spell Duration", base: 1, step: 0.1 },
+        shieldDur: { name: "Shield Duration", base: 150, step: 15 } 
     };
 
     const bossMeta = {
@@ -296,13 +352,14 @@
 
     function getStatValue(key) { return statConfig[key].base + (statConfig[key].step * (saveData.stats[key] - 1)); }
     function getStatCost(key, lvl) {
-        if (key === 'maxShadows') return 10000 * Math.pow(3, lvl - 1); // 10k, 30k, 90k, ...
+        if (key === 'maxShadows') return 10000 * Math.pow(3, lvl - 1);
         return Math.floor(100 * Math.pow(1.5, lvl - 1));
     }
 
     function saveGame() {
-        localStorage.setItem('shadowSaveV6', JSON.stringify(saveData));
+        localStorage.setItem('shadowSaveV7', JSON.stringify(saveData));
         updateMenuUI();
+        updateFriendsUI();
     }
 
     function updateMenuUI() {
@@ -310,13 +367,146 @@
         document.getElementById('lb-gold').innerText = `🪙 Gold: ${saveData.gold}`;
         document.getElementById('ingame-gold').innerText = `🪙 ${saveData.gold}`;
     }
-    
-    // UI Initialization from Save
+
+    // --- 2. PeerJS & Friend Networking ---
+    let mainPeer = null, myClientId = "", pendingInviteId = null;
+    let friendConnections = {}; // Active P2P links for status
+
+    function initMainNetworking() {
+        // Generate random stable Peer ID based on device or session
+        mainPeer = new Peer();
+
+        mainPeer.on('open', (id) => {
+            myClientId = id;
+            document.getElementById('my-acc-id').innerText = id;
+            updateFriendsUI();
+            checkFriendStatusOnline();
+        });
+
+        mainPeer.on('connection', (conn) => {
+            conn.on('data', (data) => {
+                if (data.type === 'ping') {
+                    conn.send({ type: 'pong', name: saveData.savedName, emoji: saveData.savedHeroEmoji });
+                }
+                if (data.type === 'game_invite') {
+                    pendingInviteId = data.hostId;
+                    document.getElementById('invite-msg-txt').innerText = `${data.hostName} invited you to join!`;
+                    document.getElementById('invite-toast').style.display = 'block';
+                }
+            });
+        });
+
+        mainPeer.on('error', (err) => {
+            console.error("PeerJS Error:", err);
+        });
+    }
+
+    function copyMyId() {
+        if(!myClientId) return;
+        let dummy = document.createElement("textarea");
+        document.body.appendChild(dummy);
+        dummy.value = myClientId;
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+        alert("Account ID Copied!");
+    }
+
+    function openAddFriendModal() { showModal('add-friend-modal'); }
+
+    function confirmAddFriend() {
+        let fId = document.getElementById('friend-id-input').value.trim();
+        if (!fId || fId === myClientId) return alert("Invalid Account ID!");
+        if (saveData.friends.some(f => f.id === fId)) return alert("Already added!");
+
+        saveData.friends.push({ id: fId, name: "Friend", emoji: "🤖", online: false });
+        saveGame();
+        hideModal('add-friend-modal');
+        document.getElementById('friend-id-input').value = "";
+        checkFriendStatusOnline();
+    }
+
+    function checkFriendStatusOnline() {
+        saveData.friends.forEach(f => {
+            let c = mainPeer.connect(f.id);
+            c.on('open', () => {
+                f.online = true;
+                c.send({ type: 'ping' });
+                updateFriendsUI();
+            });
+            c.on('data', (data) => {
+                if (data.type === 'pong') {
+                    f.name = data.name || f.name;
+                    f.emoji = data.emoji || f.emoji;
+                    updateFriendsUI();
+                }
+            });
+            c.on('error', () => {
+                f.online = false;
+                updateFriendsUI();
+            });
+        });
+    }
+
+    function updateFriendsUI() {
+        const listContainer = document.getElementById('friend-list-ui');
+        listContainer.innerHTML = '';
+        document.getElementById('friend-count-txt').innerText = `(${saveData.friends.length})`;
+
+        saveData.friends.forEach(f => {
+            let card = document.createElement('div');
+            card.className = 'friend-card';
+            card.innerHTML = `
+                <div class="friend-info">
+                    <div class="friend-avatar">${f.emoji}</div>
+                    <div>
+                        <div class="friend-name">${f.name}</div>
+                        <div style="font-size:0.65rem; color:#cbd5e1;">
+                            <span class="status-dot ${f.online ? 'status-online' : 'status-offline'}"></span>
+                            ${f.online ? 'Online' : 'Offline'}
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-invite" ${!f.online ? 'disabled' : ''} onclick="inviteFriend('${f.id}')">+</button>
+            `;
+            listContainer.appendChild(card);
+        });
+    }
+
+    function inviteFriend(targetId) {
+        if (!mainPeer) return;
+        let conn = mainPeer.connect(targetId);
+        conn.on('open', () => {
+            conn.send({
+                type: 'game_invite',
+                hostId: myClientId,
+                hostName: saveData.savedName || "Player"
+            });
+            alert("Invite Sent!");
+        });
+    }
+
+    function acceptGameInvite() {
+        document.getElementById('invite-toast').style.display = 'none';
+        if (!pendingInviteId) return;
+        
+        setupMultiplayerLobby(false);
+        document.getElementById('join-code-input').value = pendingInviteId;
+        joinRoomSubmit();
+    }
+
+    function declineGameInvite() {
+        document.getElementById('invite-toast').style.display = 'none';
+        pendingInviteId = null;
+    }
+
+    // UI Listeners
     document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('player-name').value = saveData.savedName;
         document.getElementById('disp-emoji').innerText = saveData.savedHeroEmoji;
         document.getElementById('disp-name').innerText = saveData.savedHeroName;
         document.getElementById('hud-emoji').innerText = saveData.savedHeroEmoji;
+        initMainNetworking();
     });
 
     document.getElementById('player-name').addEventListener('input', (e) => { 
@@ -326,7 +516,6 @@
 
     updateMenuUI();
 
-    // Redeem Code Function
     function applyRedeemCode() {
         const code = document.getElementById('redeem-input').value;
         if (code === '!@#$12345678!@#$') {
@@ -335,23 +524,22 @@
             Object.keys(bossMeta).forEach(emoji => { if(!saveData.unlockedBosses.includes(emoji)) saveData.unlockedBosses.push(emoji); });
             heroShopConfig.forEach(h => { if(!saveData.unlockedHeroes.includes(h.emoji)) saveData.unlockedHeroes.push(h.emoji); });
             saveGame();
-            alert("Cheat Code Activated! Everything Unlocked.");
+            alert("Cheat Code Activated!");
         } else {
-            alert("Invalid Redeem Code!");
+            alert("Invalid Code!");
         }
     }
 
     function openStatsModal() {
         document.getElementById('modal-gold').innerText = `🪙 ${saveData.gold}`;
-        
         const container = document.getElementById('stats-container'); container.innerHTML = '';
         Object.keys(saveData.stats).forEach(key => {
             let lvl = saveData.stats[key];
-            let maxLvl = key === 'maxShadows' ? 7 : 50; // Cap shadows to 7 (total bosses)
+            let maxLvl = key === 'maxShadows' ? 7 : 50;
             let cost = getStatCost(key, lvl);
             
             let row = document.createElement('div'); row.className = 'stat-row';
-            row.innerHTML = `<div class="stat-info"><div class="stat-name">${statConfig[key].name} <span class="stat-lvl">(Lvl ${lvl}/${maxLvl})</span></div><div style="font-size: 12px; color: #cbd5e1;">🪙 ${lvl < maxLvl ? cost : 'MAX'}</div></div><button class="btn-upg" ${saveData.gold < cost || lvl >= maxLvl ? 'disabled' : ''} onclick="buyUpgrade('${key}', ${cost})">UPGRADE</button>`;
+            row.innerHTML = `<div class="stat-info"><div class="stat-name">${statConfig[key].name} <span class="stat-lvl">(Lvl ${lvl}/${maxLvl})</span></div><div style="font-size: 11px; color: #cbd5e1;">🪙 ${lvl < maxLvl ? cost : 'MAX'}</div></div><button class="btn-upg" ${saveData.gold < cost || lvl >= maxLvl ? 'disabled' : ''} onclick="buyUpgrade('${key}', ${cost})">UPGRADE</button>`;
             container.appendChild(row);
         });
 
@@ -366,8 +554,8 @@
             const card = document.createElement('div');
             card.className = `boss-index-card ${isUnlocked ? '' : 'locked'} ${isSelected ? 'selected' : ''}`;
             card.innerHTML = `
-                <div style="font-size:28px;">${isUnlocked ? emoji : '🔒'}</div>
-                <div style="font-size:10px; margin-top:5px; font-weight:bold;">${info.name}</div>
+                <div style="font-size:24px;">${isUnlocked ? emoji : '🔒'}</div>
+                <div style="font-size:9px; margin-top:4px; font-weight:bold;">${info.name}</div>
                 ${isSelected ? '<div class="selection-badge">✓</div>' : ''}
             `;
             
@@ -379,7 +567,7 @@
                         if (saveData.selectedShadowBosses.length < saveData.stats.maxShadows) {
                             saveData.selectedShadowBosses.push(emoji);
                         } else {
-                            alert(`You can only equip up to ${saveData.stats.maxShadows} shadows. Upgrade stat to equip more!`);
+                            alert(`Max capacity reached! Upgrade Max Shadows stat.`);
                             return;
                         }
                     }
@@ -398,7 +586,7 @@
         } 
     }
 
-    // --- 2. Customization System ---
+    // --- 3. Customization & Hero Shop ---
     const bodyColors = ['#ffffff', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
     const teamColors = ['#000000', '#ef4444', '#3b82f6', '#10b981', '#facc15']; 
 
@@ -410,18 +598,13 @@
     function showModal(id) { document.getElementById(id).style.display = 'flex'; }
     function hideModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // Render Colors
     const colorGrid = document.getElementById('color-grid');
     bodyColors.forEach(c => {
         let btn = document.createElement('div'); btn.className = 'color-btn'; btn.style.backgroundColor = c;
         if(c === playerColor) btn.classList.add('active');
         btn.onclick = () => { 
             document.querySelectorAll('#color-grid .color-btn').forEach(b => b.classList.remove('active')); 
-            btn.classList.add('active'); 
-            playerColor = c; 
-            saveData.savedColor = c; 
-            saveGame(); 
-            sendPlayerSettingsUpdate(); 
+            btn.classList.add('active'); playerColor = c; saveData.savedColor = c; saveGame(); sendPlayerSettingsUpdate(); 
         }; 
         colorGrid.appendChild(btn);
     });
@@ -433,54 +616,36 @@
         if(t === playerTeamColor) btn.classList.add('active');
         btn.onclick = () => { 
             document.querySelectorAll('#team-grid .color-btn').forEach(b => b.classList.remove('active')); 
-            btn.classList.add('active'); 
-            playerTeamColor = t; 
-            saveData.savedTeam = t; 
-            saveGame(); 
-            sendPlayerSettingsUpdate(); 
+            btn.classList.add('active'); playerTeamColor = t; saveData.savedTeam = t; saveGame(); sendPlayerSettingsUpdate(); 
         }; 
         teamGrid.appendChild(btn);
     });
 
     function openHeroModal() {
         document.getElementById('shop-gold').innerText = `🪙 ${saveData.gold}`;
-        const gridContainer = document.getElementById('hero-grid-container');
-        gridContainer.innerHTML = '';
+        const gridContainer = document.getElementById('hero-grid-container'); gridContainer.innerHTML = '';
         
         heroShopConfig.forEach(h => {
             const isUnlocked = saveData.unlockedHeroes.includes(h.emoji);
             let div = document.createElement('div'); div.className = 'hero-shop-item';
-            div.innerHTML = `
-                <div class="emoji">${h.emoji}</div>
-                <div style="font-weight:bold; font-size:0.9rem; margin-top:5px;">${h.name}</div>
-                <div style="font-size:0.7rem; color:#94a3b8;">${h.spell}</div>
-            `;
+            div.innerHTML = `<div class="emoji">${h.emoji}</div><div style="font-weight:bold; font-size:0.85rem; margin-top:4px;">${h.name}</div><div style="font-size:0.7rem; color:#94a3b8;">${h.spell}</div>`;
             
             if (isUnlocked) {
                 let btn = document.createElement('button'); btn.className = 'btn-equip'; btn.innerText = 'EQUIP';
                 btn.onclick = () => {
                     currentHero = { emoji: h.emoji, name: h.name };
-                    saveData.savedHeroEmoji = h.emoji; 
-                    saveData.savedHeroName = h.name; 
-                    saveGame();
-                    
+                    saveData.savedHeroEmoji = h.emoji; saveData.savedHeroName = h.name; saveGame();
                     document.getElementById('disp-emoji').innerText = h.emoji;
                     document.getElementById('disp-name').innerText = h.name;
                     document.getElementById('hud-emoji').innerText = h.emoji;
-                    
-                    hideModal('hero-modal'); 
-                    sendPlayerSettingsUpdate();
+                    hideModal('hero-modal'); sendPlayerSettingsUpdate();
                 };
                 div.appendChild(btn);
             } else {
                 let p = document.createElement('div'); p.className = 'price'; p.innerText = `🪙 ${h.cost}`; div.appendChild(p);
                 let btn = document.createElement('button'); btn.className = 'btn-buy'; btn.innerText = 'BUY';
                 if (saveData.gold < h.cost) btn.disabled = true;
-                btn.onclick = () => {
-                    if (saveData.gold >= h.cost) {
-                        saveData.gold -= h.cost; saveData.unlockedHeroes.push(h.emoji); saveGame(); openHeroModal();
-                    }
-                };
+                btn.onclick = () => { if (saveData.gold >= h.cost) { saveData.gold -= h.cost; saveData.unlockedHeroes.push(h.emoji); saveGame(); openHeroModal(); } };
                 div.appendChild(btn);
             }
             gridContainer.appendChild(div);
@@ -488,8 +653,8 @@
         showModal('hero-modal');
     }
 
-    // --- 3. Multiplayer P2P System ---
-    let peer = null, isHost = false, connections = [], myClientId = "", lobbyPlayers = [], remotePlayers = {}; 
+    // --- 4. Multiplayer Lobby P2P Sync ---
+    let isHost = false, connections = [], lobbyPlayers = [], remotePlayers = {}; 
     let isOnlineMode = false;
 
     function setupMultiplayerLobby(asHost) {
@@ -500,15 +665,13 @@
         document.getElementById('join-input-container').style.display = 'none';
         
         if (asHost) {
-            document.getElementById('mp-title').innerText = "Host Multiplayer";
-            document.getElementById('room-code-txt').innerText = "Starting Server...";
+            document.getElementById('mp-title').innerText = "Host Lobby";
+            document.getElementById('room-code-txt').innerText = myClientId;
             document.getElementById('btn-start-mp').style.display = 'inline-block';
-            
-            peer = new Peer();
-            peer.on('open', (id) => { myClientId = id; document.getElementById('room-code-txt').innerText = id; addLobbyPlayer(id, myName, currentHero.emoji, playerColor, playerTeamColor, true); });
-            peer.on('connection', (conn) => { connections.push(conn); setupHostConnectionEvents(conn); });
+            lobbyPlayers = [];
+            addLobbyPlayer(myClientId, myName, currentHero.emoji, playerColor, playerTeamColor, true);
         } else {
-            document.getElementById('mp-title').innerText = "Join Multiplayer";
+            document.getElementById('mp-title').innerText = "Join Room";
             document.getElementById('mp-code-container').style.display = 'none';
             document.getElementById('join-input-container').style.display = 'block';
             document.getElementById('btn-start-mp').style.display = 'none';
@@ -519,30 +682,17 @@
         const code = document.getElementById('join-code-input').value.trim();
         if (!code) return;
         document.getElementById('room-code-txt').innerText = "Connecting...";
-        document.getElementById('room-code-txt').style.color = "#facc15";
         document.getElementById('mp-code-container').style.display = 'block';
         
-        peer = new Peer();
+        let conn = mainPeer.connect(code, { reliable: true });
         
-        peer.on('open', (id) => { 
-            myClientId = id; 
-            const conn = peer.connect(code, { reliable: true }); 
-            
-            conn.on('open', () => {
-                document.getElementById('room-code-txt').innerText = "Connected!";
-                document.getElementById('room-code-txt').style.color = "#10b981";
-                setupClientConnectionEvents(conn); 
-            });
-
-            conn.on('error', (err) => {
-                document.getElementById('room-code-txt').innerText = "Host Not Found!";
-                document.getElementById('room-code-txt').style.color = "#ef4444";
-            });
+        conn.on('open', () => {
+            document.getElementById('room-code-txt').innerText = "Connected!";
+            setupClientConnectionEvents(conn); 
         });
 
-        peer.on('error', (err) => {
-            document.getElementById('room-code-txt').innerText = "Invalid Code or Error!";
-            document.getElementById('room-code-txt').style.color = "#ef4444";
+        conn.on('error', () => {
+            document.getElementById('room-code-txt').innerText = "Error Connecting!";
         });
     }
 
@@ -557,14 +707,13 @@
         lobbyPlayers.forEach(p => {
             let row = document.createElement('div'); row.className = 'player-row';
             let teamIndicator = p.team === '#000000' ? '⚫ Solo' : `<span style="color:${p.team};">■ Team</span>`;
-            row.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><span style="font-size:24px; padding:3px; background:${p.color}; border-radius:50%;">${p.emoji}</span><span>${p.name} ${p.isHost ? '👑' : ''}</span></div><div>${teamIndicator}</div>`;
+            row.innerHTML = `<div style="display:flex; align-items:center; gap:8px;"><span style="font-size:20px; padding:2px; background:${p.color}; border-radius:50%;">${p.emoji}</span><span>${p.name} ${p.isHost ? '👑' : ''}</span></div><div>${teamIndicator}</div>`;
             listDiv.appendChild(row);
         });
     }
 
     function sendPlayerSettingsUpdate() {
         myName = document.getElementById('player-name').value.trim() || "Player";
-        if (!peer) return;
         if (isHost) {
             let self = lobbyPlayers.find(p => p.id === myClientId);
             if (self) { self.emoji = currentHero.emoji; self.color = playerColor; self.team = playerTeamColor; self.name = myName; }
@@ -584,7 +733,7 @@
     }
 
     function setupClientConnectionEvents(conn) {
-        connections.push(conn);
+        connections = [conn];
         conn.on('open', () => { conn.send({ type: 'update_settings', id: myClientId, name: myName, emoji: currentHero.emoji, color: playerColor, team: playerTeamColor }); });
         conn.on('data', (data) => {
             if (data.type === 'lobby_update') { lobbyPlayers = data.players; updateLobbyListUI(); }
@@ -599,9 +748,9 @@
     }
 
     function broadcast(data) { connections.forEach(conn => { if (conn.open) conn.send(data); }); }
-    function leaveMultiplayer() { if (peer) { peer.destroy(); peer = null; } connections = []; lobbyPlayers = []; remotePlayers = {}; isHost = false; hideModal('mp-lobby-modal'); gameState = 'MENU'; }
+    function leaveMultiplayer() { connections = []; lobbyPlayers = []; remotePlayers = {}; isHost = false; hideModal('mp-lobby-modal'); gameState = 'MENU'; }
 
-    // --- 4. Game Engine Setup & Core Systems ---
+    // --- 5. Game Engine Logic ---
     const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
     let width, height; function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
     window.addEventListener('resize', resize); resize();
@@ -627,12 +776,7 @@
     };
 
     let enemies = [], spells = [], particles = [], allyShadows = [], tombstones = [], hazards = [];
-    
-    // Wave System
-    let wave = 1;
-    let waveState = 'SPAWNING'; // SPAWNING, CLEARING, BOSS
-    let totalEnemiesThisWave = 0;
-    let spawnedThisWave = 0;
+    let wave = 1, waveState = 'SPAWNING', totalEnemiesThisWave = 0, spawnedThisWave = 0;
 
     for(let i=0; i<MAP_SIZE; i+=400) { for(let j=0; j<MAP_SIZE; j+=350) { if(Math.random() > 0.3) tombstones.push({x: i + Math.random()*100, y: j + Math.random()*100, type: Math.floor(Math.random()*3)}); } }
 
@@ -650,7 +794,7 @@
         sub.innerText = subtitle;
     }
 
-    // --- 5. Controls ---
+    // Touch Controls
     let joyActive = false, joyOrigin = { x: 0, y: 0 };
     const joyZone = document.getElementById('joy-zone'), joyKnob = document.getElementById('joy-knob');
     joyZone.addEventListener('touchstart', e => { e.preventDefault(); const t = e.changedTouches[0], r = joyZone.getBoundingClientRect(); joyOrigin = { x: r.left + r.width/2, y: r.top + r.height/2 }; updateJoystick(t.clientX, t.clientY); joyActive = true; });
@@ -658,7 +802,7 @@
     joyZone.addEventListener('touchend', e => { e.preventDefault(); joyActive = false; joyKnob.style.transform = `translate(0px, 0px)`; player.vx = player.vy = 0; player.isMoving = false; });
 
     function updateJoystick(tx, ty) {
-        let dx = tx - joyOrigin.x, dy = ty - joyOrigin.y, dist = Math.hypot(dx, dy), maxDist = 45;
+        let dx = tx - joyOrigin.x, dy = ty - joyOrigin.y, dist = Math.hypot(dx, dy), maxDist = 40;
         if (dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
         joyKnob.style.transform = `translate(${dx}px, ${dy}px)`; player.vx = (dx / maxDist); player.vy = (dy / maxDist); player.isMoving = (dist > 5);
     }
@@ -667,7 +811,7 @@
         e.preventDefault(); if(player.isDead) return;
         player.lastAtkFrame = frames; createParticles(player.x, player.y, '#fff', 5);
         let dmg = getStatValue('atk'); if(player.lionBuff > 0) dmg *= 1.5;
-        if (!peer || isHost) handleLocalAttacks(player, dmg);
+        if (!isOnlineMode || isHost) handleLocalAttacks(player, dmg);
     };
 
     function handleLocalAttacks(attacker, dmg) {
@@ -677,16 +821,7 @@
             towers.forEach(t => {
                 if (t.active && t.team !== attacker.team && Math.hypot(t.x - attacker.x, t.y - attacker.y) < 150) {
                     t.hp -= dmg; createParticles(t.x, t.y, t.color, 10);
-                    if (t.hp <= 0 && peer && isHost) { t.active = false; broadcast({type: 'float_text', text: "TOWER DESTROYED!", x: t.x, y: t.y, color: '#ef4444'}); checkWinCondition(); }
-                }
-            });
-        }
-
-        if (peer && attacker.id === "host") {
-            connections.forEach(conn => {
-                let client = remotePlayers[conn.peer];
-                if (client && !client.isDead && (attacker.team === '#000000' || client.team === '#000000' || attacker.team !== client.team)) {
-                    if (Math.hypot(client.x - attacker.x, client.y - attacker.y) < 100) { client.hp -= dmg; createParticles(client.x, client.y, '#f43f5e', 10); }
+                    if (t.hp <= 0 && isHost) { t.active = false; broadcast({type: 'float_text', text: "TOWER DESTROYED!", x: t.x, y: t.y, color: '#ef4444'}); checkWinCondition(); }
                 }
             });
         }
@@ -696,26 +831,11 @@
         if (!isOnlineMode) return;
         let activeTeams = towers.filter(t => t.active).map(t => t.team);
         
-        Object.keys(remotePlayers).forEach(id => {
-            let p = remotePlayers[id];
-            if (p.team !== '#000000' && !activeTeams.includes(p.team)) {
-                let conn = connections.find(c => c.peer === id);
-                if (conn) conn.send({type: 'end_game', status: 'DEFEAT', color: '#ef4444', sub: "Your tower was destroyed!"});
-            }
-        });
-
         if (player.team !== '#000000' && !activeTeams.includes(player.team)) showEndGame('DEFEAT', '#ef4444', "Your tower was destroyed!");
 
         if (activeTeams.length === 1) {
             let winningTeam = activeTeams[0];
             if (player.team === winningTeam) showEndGame('VICTORY', '#facc15', "All enemy towers destroyed!");
-            Object.keys(remotePlayers).forEach(id => {
-                let p = remotePlayers[id];
-                if (p.team === winningTeam) {
-                    let conn = connections.find(c => c.peer === id);
-                    if (conn) conn.send({type: 'end_game', status: 'VICTORY', color: '#facc15', sub: "All enemy towers destroyed!"});
-                }
-            });
         }
     }
 
@@ -726,13 +846,13 @@
         let em = currentHero.emoji; let durMulti = getStatValue('spellDur');
         
         if(['🤖','💀','👻','🧟','👺','👹'].includes(em)) {
-            let dirX = player.vx || 1, dirY = player.vy || 0; if (!peer || isHost) spells.push({ x: player.x, y: player.y, vx: dirX * 18, vy: dirY * 18, life: 100, color: playerColor, isPlayerSpell: true, dmg: 65 + getStatValue('atk') });
+            let dirX = player.vx || 1, dirY = player.vy || 0; if (!isOnlineMode || isHost) spells.push({ x: player.x, y: player.y, vx: dirX * 18, vy: dirY * 18, life: 100, color: playerColor, isPlayerSpell: true, dmg: 65 + getStatValue('atk') });
         }
-        else if(em === '🧛‍♂️') { player.slowTimer = 0; createParticles(player.x, player.y, '#dc2626', 30); healPlayer(player.maxHp * 0.2); } // Self heal & cleanse
+        else if(em === '🧛‍♂️') { player.slowTimer = 0; createParticles(player.x, player.y, '#dc2626', 30); healPlayer(player.maxHp * 0.2); }
         else if (em === '🦁') { player.lionBuff = 420 * durMulti; healPlayer(player.maxHp * 0.1); createParticles(player.x, player.y, '#f59e0b', 30); }
         else if (em === '🧙‍♂️') { player.wizardBuff = 480 * durMulti; createParticles(player.x, player.y, '#3b82f6', 30); }
         else if (em === '🥷') {
-            for(let a=0; a<Math.PI*2; a+=Math.PI/4) { if (!peer || isHost) spells.push({ x: player.x, y: player.y, vx: Math.cos(a)*20, vy: Math.sin(a)*20, life: 50, color: '#94a3b8', isPlayerSpell: true, dmg: 50 + getStatValue('atk') }); }
+            for(let a=0; a<Math.PI*2; a+=Math.PI/4) { if (!isOnlineMode || isHost) spells.push({ x: player.x, y: player.y, vx: Math.cos(a)*20, vy: Math.sin(a)*20, life: 50, color: '#94a3b8', isPlayerSpell: true, dmg: 50 + getStatValue('atk') }); }
         }
         player.cdSpell = getStatValue('spell');
     };
@@ -741,7 +861,7 @@
         e.preventDefault(); if(player.isDead || player.shadowCD > 0) return;
         if(saveData.selectedShadowBosses.length === 0) return;
         
-        if(!peer || isHost) {
+        if(!isOnlineMode || isHost) {
             saveData.selectedShadowBosses.forEach(emoji => {
                 allyShadows.push({ x: player.x + (Math.random()*60-30), y: player.y + (Math.random()*60-30), emoji: emoji, hp: getStatValue('sHp'), maxHp: getStatValue('sHp'), speed: getStatValue('sSpeed'), dmg: getStatValue('sDmg'), lastSpellFrame: 0 });
             });
@@ -777,23 +897,15 @@
     
     function prepareWave(w) {
         waveState = 'SPAWNING';
-        if (w === 1) {
-            totalEnemiesThisWave = 5;
-        } else {
-            totalEnemiesThisWave = Math.floor(5 * Math.pow(1.5, w - 1));
-            if (totalEnemiesThisWave > 300) totalEnemiesThisWave = 300; // Cap at 300
-        }
+        totalEnemiesThisWave = w === 1 ? 5 : Math.min(300, Math.floor(5 * Math.pow(1.5, w - 1)));
         spawnedThisWave = 0;
     }
 
     function spawnBossByWave(w) {
         let angle = Math.random() * Math.PI * 2, dist = 600, ex = player.x + Math.cos(angle) * dist, ey = player.y + Math.sin(angle) * dist;
-        let hpBase = 3000 + (w*300); // Super buffed Boss HP
-        
+        let hpBase = 3000 + (w*300);
         let bossKeys = Object.keys(bossMeta);
-        let bIdx = Math.floor((w / 5) - 1);
-        if (bIdx >= bossKeys.length) bIdx = bossKeys.length - 1; // Default to last boss if very high wave
-        
+        let bIdx = Math.min(bossKeys.length - 1, Math.floor((w / 5) - 1));
         let emoji = bossKeys[bIdx];
 
         enemies.push({ x: ex, y: ey, emoji: emoji, hp: hpBase, maxHp: hpBase, speed: 4 + (w*0.05), dmg: 80 + (w*5), isBoss: true, size: 100, lastSpellFrame: frames, enraged: false });
@@ -849,13 +961,12 @@
 
         if (player.hp <= 0 && !player.isDead) handleLocalDeath();
 
-        if (peer) {
+        if (isOnlineMode) {
             if (isHost) { connections.forEach(conn => { let client = remotePlayers[conn.peer]; if (client) { client.x = Math.max(50, Math.min(MAP_SIZE-50, client.x)); client.y = Math.max(50, Math.min(MAP_SIZE-50, client.y)); } }); } 
             else { let hostConn = connections[0]; if (hostConn && hostConn.open) { hostConn.send({ type: 'client_update', id: myClientId, playerState: { name: player.name, x: player.x, y: player.y, vx: player.vx, vy: player.vy, isMoving: player.isMoving, emoji: player.emoji, color: player.color, team: player.team, isShielded: player.isShielded, lionBuff: player.lionBuff, slowTimer: player.slowTimer, lastAtkFrame: player.lastAtkFrame, hp: player.hp, maxHp: player.maxHp, isDead: player.isDead } }); } }
         }
 
-        if (!peer || isHost) {
-            // Wave Logic Control
+        if (!isOnlineMode || isHost) {
             if (waveState === 'SPAWNING') {
                 if (spawnedThisWave < totalEnemiesThisWave && enemies.length < 300) {
                     if (frames % 20 === 0) { spawnEnemy(); spawnedThisWave++; }
@@ -864,21 +975,12 @@
                 }
             } else if (waveState === 'CLEARING') {
                 if (enemies.length === 0) {
-                    if (wave % 5 === 0) {
-                        waveState = 'BOSS';
-                        spawnBossByWave(wave);
-                    } else {
-                        startNextWave();
-                    }
+                    if (wave % 5 === 0) { waveState = 'BOSS'; spawnBossByWave(wave); } 
+                    else { startNextWave(); }
                 }
             } else if (waveState === 'BOSS') {
                 if (enemies.length === 0) {
-                    // Boss defeated
-                    if (!isOnlineMode) {
-                        saveData.checkpointWave = wave + 1; // Update checkpoint on boss kill
-                        saveGame();
-                        addFloatText("CHECKPOINT SAVED!", width/2 - 100, height/3, '#10b981');
-                    }
+                    if (!isOnlineMode) { saveData.checkpointWave = wave + 1; saveGame(); addFloatText("CHECKPOINT SAVED!", width/2 - 100, height/3, '#10b981'); }
                     startNextWave();
                 }
             }
@@ -886,20 +988,20 @@
         }
 
         let curSpeed = player.lionBuff > 0 ? player.speed * 1.5 : player.speed;
-        if (player.slowTimer > 0) curSpeed *= 0.4; // 60% slow
+        if (player.slowTimer > 0) curSpeed *= 0.4;
         
         player.x += player.vx * curSpeed; player.y += player.vy * curSpeed;
         player.x = Math.max(50, Math.min(MAP_SIZE-50, player.x)); player.y = Math.max(50, Math.min(MAP_SIZE-50, player.y));
         camera.x = player.x - width/2; camera.y = player.y - height/2;
 
-        if (player.isDead) document.getElementById('wave-info').innerHTML = `<span style="color:#ef4444; font-size:1.5rem;">GHOST</span><br><span style="font-size:0.9rem;">Respawn: ${player.respawnTimer}s</span>`;
+        if (player.isDead) document.getElementById('wave-info').innerHTML = `<span style="color:#ef4444; font-size:1.3rem;">GHOST</span><br><span style="font-size:0.85rem;">Respawn: ${player.respawnTimer}s</span>`;
         else {
             let statusTxt = waveState === 'BOSS' ? `<span style="color:#ef4444;">BOSS BATTLE</span>` : `Spawning: ${spawnedThisWave}/${totalEnemiesThisWave}`;
             if(waveState === 'CLEARING') statusTxt = `Remaining: ${enemies.length}`;
-            document.getElementById('wave-info').innerHTML = `Wave: ${wave}<br><span style="font-size:0.9rem; color:#fff;">${statusTxt}</span>`; 
+            document.getElementById('wave-info').innerHTML = `Wave: ${wave}<br><span style="font-size:0.85rem; color:#fff;">${statusTxt}</span>`; 
         }
 
-        if (peer && isHost) {
+        if (isOnlineMode && isHost) {
             broadcast({ type: 'sync_game_state', enemies: enemies, spells: spells, particles: particles, allyShadows: allyShadows, hazards: hazards, wave: wave, waveState: waveState, frames: frames, towers: towers,
                 players: { host: { name: player.name, x: player.x, y: player.y, vx: player.vx, vy: player.vy, isMoving: player.isMoving, emoji: player.emoji, color: player.color, team: player.team, isShielded: player.isShielded, lionBuff: player.lionBuff, slowTimer: player.slowTimer, lastAtkFrame: player.lastAtkFrame, hp: player.hp, maxHp: player.maxHp, isDead: player.isDead }, ...remotePlayers }
             });
@@ -910,43 +1012,34 @@
         let earned = 50 * Math.pow(1.5, wave - 1); 
         saveData.gold += Math.floor(earned); 
         addFloatText(`+ ${Math.floor(earned)} Gold!`, width/2 - 40, height/4);
-        if (peer) broadcast({type: 'float_text', text: `+ ${Math.floor(earned)} Gold!`, x: width/2 - 40, y: height/4, color: '#facc15'});
+        if (isOnlineMode) broadcast({type: 'float_text', text: `+ ${Math.floor(earned)} Gold!`, x: width/2 - 40, y: height/4, color: '#facc15'});
         
         wave++; if(wave > saveData.topWave) saveData.topWave = wave; saveGame();
         prepareWave(wave);
     }
     
-    // Epic 5 Spells System (Used by Bosses and Shadows)
     function castEpicSpell(caster, targetX, targetY, isAlly, baseDmg) {
-        let spellType = Math.floor(Math.random() * 5); // 0-4
+        let spellType = Math.floor(Math.random() * 5);
         let angle = Math.atan2(targetY - caster.y, targetX - caster.x);
         
-        if (spellType === 0) { // Slow Fireball (Red)
-            spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6, life: 200, color: '#ef4444', isAlly: isAlly, dmg: baseDmg * 1.5, type: 'fire', size: 25 });
-        } else if (spellType === 1) { // Fast Ice (Blue - Slows target)
-            spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 15, vy: Math.sin(angle) * 15, life: 100, color: '#38bdf8', isAlly: isAlly, dmg: baseDmg * 0.8, type: 'ice', size: 15 });
-        } else if (spellType === 2) { // Shuriken (Grey - Passes through)
-            spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10, life: 150, color: '#94a3b8', isAlly: isAlly, dmg: baseDmg, type: 'shuriken', size: 20 });
-        } else if (spellType === 3) { // Lightning (Yellow - Instant high dmg path)
-            for(let i=1; i<=5; i++) {
-                spells.push({ x: caster.x + Math.cos(angle)*i*60, y: caster.y + Math.sin(angle)*i*60, vx: 0, vy: 0, life: 15, color: '#facc15', isAlly: isAlly, dmg: baseDmg * 1.2, type: 'lightning', size: 30 });
-            }
-        } else if (spellType === 4) { // Bomb Marker
-            hazards.push({ x: targetX, y: targetY, life: 120, radius: 100, color: isAlly ? '#a78bfa' : '#ef4444', isAlly: isAlly, dmg: baseDmg * 2 });
-        }
+        if (spellType === 0) spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6, life: 200, color: '#ef4444', isAlly: isAlly, dmg: baseDmg * 1.5, type: 'fire', size: 25 });
+        else if (spellType === 1) spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 15, vy: Math.sin(angle) * 15, life: 100, color: '#38bdf8', isAlly: isAlly, dmg: baseDmg * 0.8, type: 'ice', size: 15 });
+        else if (spellType === 2) spells.push({ x: caster.x, y: caster.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10, life: 150, color: '#94a3b8', isAlly: isAlly, dmg: baseDmg, type: 'shuriken', size: 20 });
+        else if (spellType === 3) {
+            for(let i=1; i<=5; i++) spells.push({ x: caster.x + Math.cos(angle)*i*60, y: caster.y + Math.sin(angle)*i*60, vx: 0, vy: 0, life: 15, color: '#facc15', isAlly: isAlly, dmg: baseDmg * 1.2, type: 'lightning', size: 30 });
+        } else if (spellType === 4) hazards.push({ x: targetX, y: targetY, life: 120, radius: 100, color: isAlly ? '#a78bfa' : '#ef4444', isAlly: isAlly, dmg: baseDmg * 2 });
     }
 
     function updateMonstersAndAI() {
-        // Spells update
         for(let i=spells.length-1; i>=0; i--) {
             let sp = spells[i]; sp.x += sp.vx; sp.y += sp.vy; sp.life--;
-            
             let hitTarget = false;
+            
             if (sp.isPlayerSpell || sp.isAlly) {
                 enemies.forEach(en => {
                     if(!hitTarget && Math.hypot(en.x - sp.x, en.y - sp.y) < (en.isBoss ? 70 : 40)) { 
                         en.hp -= sp.dmg; createParticles(en.x, en.y, sp.color, 10); 
-                        if (sp.type === 'ice') en.speed *= 0.5; // Freeze effect on enemies
+                        if (sp.type === 'ice') en.speed *= 0.5;
                         if (sp.type !== 'shuriken' && sp.type !== 'lightning') sp.life = 0; hitTarget = true;
                     }
                 });
@@ -954,10 +1047,7 @@
                 let targetPlayer = getNearestAlivePlayer(sp.x, sp.y);
                 if (targetPlayer && Math.hypot(targetPlayer.x - sp.x, targetPlayer.y - sp.y) < sp.size + 20) {
                     dealDamageToPlayer(targetPlayer, sp.dmg);
-                    if (sp.type === 'ice') {
-                         if (targetPlayer.id === "local") player.slowTimer = 120;
-                         // Sync slow would require sending, but letting clients resolve their own hits is okay for now
-                    }
+                    if (sp.type === 'ice' && targetPlayer.id === "local") player.slowTimer = 120;
                     createParticles(sp.x, sp.y, sp.color, 15);
                     if (sp.type !== 'shuriken' && sp.type !== 'lightning') sp.life = 0;
                 }
@@ -965,11 +1055,9 @@
             if(sp.life <= 0) spells.splice(i, 1);
         }
         
-        // Hazards (Bombs) Update
         for(let i=hazards.length-1; i>=0; i--) {
             let hz = hazards[i]; hz.life--;
             if (hz.life <= 0) {
-                // EXPLODE!
                 createParticles(hz.x, hz.y, hz.color, 50);
                 if (hz.isAlly) {
                     enemies.forEach(en => { if (Math.hypot(en.x - hz.x, en.y - hz.y) < hz.radius) { en.hp -= hz.dmg; createParticles(en.x, en.y, '#fff', 5); }});
@@ -981,7 +1069,6 @@
             }
         }
 
-        // Shadows AI
         for(let i=allyShadows.length-1; i>=0; i--) {
             let ally = allyShadows[i], target = null, minDist = 1000;
             let aSpeed = player.wizardBuff > 0 ? ally.speed * 1.5 : ally.speed;
@@ -991,7 +1078,7 @@
                 if (minDist > 150) {
                     let angle = Math.atan2(target.y - ally.y, target.x - ally.x); ally.x += Math.cos(angle) * aSpeed; ally.y += Math.sin(angle) * aSpeed;
                 } else {
-                    if (frames - ally.lastSpellFrame > 90) { // Cast spell every 1.5s
+                    if (frames - ally.lastSpellFrame > 90) {
                         castEpicSpell(ally, target.x, target.y, true, ally.dmg);
                         ally.lastSpellFrame = frames;
                     }
@@ -1002,10 +1089,8 @@
             ally.hp -= 1; if(ally.hp <= 0) { createParticles(ally.x, ally.y, '#a78bfa', 30); allyShadows.splice(i, 1); }
         }
 
-        // Enemies AI
         for(let i=enemies.length-1; i>=0; i--) {
             let en = enemies[i];
-            
             if(en.isBoss && en.hp < (en.maxHp * 0.3) && !en.enraged) {
                 en.enraged = true; en.size *= 1.3; en.speed *= 1.5; en.dmg *= 1.5;
                 createParticles(en.x, en.y, '#ff0000', 50);
@@ -1016,10 +1101,10 @@
                     if(!saveData.unlockedBosses.includes(en.emoji)) { 
                         saveData.unlockedBosses.push(en.emoji); saveGame(); 
                         addFloatText("New Shadow Unlocked!", width/2 - 80, height/2 - 40, '#a78bfa');
-                        if (peer) broadcast({type: 'float_text', text: "New Shadow Unlocked!", x: width/2 - 80, y: height/2 - 40, color: '#a78bfa'});
+                        if (isOnlineMode) broadcast({type: 'float_text', text: "New Shadow Unlocked!", x: width/2 - 80, y: height/2 - 40, color: '#a78bfa'});
                     }
                     addFloatText("Boss Defeated!", width/2 - 50, height/2, '#ca8a04');
-                    if (peer) broadcast({type: 'float_text', text: "Boss Defeated!", x: width/2 - 50, y: height/2, color: '#ca8a04'});
+                    if (isOnlineMode) broadcast({type: 'float_text', text: "Boss Defeated!", x: width/2 - 50, y: height/2, color: '#ca8a04'});
                 }
                 createParticles(en.x, en.y, '#ef4444', 15); enemies.splice(i, 1); continue; 
             }
@@ -1031,11 +1116,11 @@
                 let distToTarget = Math.hypot(targetPlayer.x - en.x, targetPlayer.y - en.y);
                 
                 if (en.isBoss) {
-                    if (frames - en.lastSpellFrame > (en.enraged ? 60 : 90)) { // Cast every 1.5s or 1s if enraged
+                    if (frames - en.lastSpellFrame > (en.enraged ? 60 : 90)) {
                         castEpicSpell(en, targetPlayer.x, targetPlayer.y, false, en.dmg);
                         en.lastSpellFrame = frames;
                     }
-                    if (distToTarget > 300) { en.x += Math.cos(angle) * en.speed; en.y += Math.sin(angle) * en.speed; } // Keep some distance
+                    if (distToTarget > 300) { en.x += Math.cos(angle) * en.speed; en.y += Math.sin(angle) * en.speed; }
                 } else {
                     en.x += Math.cos(angle) * en.speed; en.y += Math.sin(angle) * en.speed;
                 }
@@ -1058,34 +1143,30 @@
             let inSafeZone = false;
             if (isOnlineMode) {
                 towers.forEach(t => { 
-                    if (t.active && t.team === p.team && Math.hypot(p.x - t.x, p.y - t.y) < t.safeRadius) {
-                        inSafeZone = true;
-                    } 
+                    if (t.active && t.team === p.team && Math.hypot(p.x - t.x, p.y - t.y) < t.safeRadius) inSafeZone = true;
                 });
             }
-            
             if (!inSafeZone) {
                 let dist = Math.hypot(p.x - x, p.y - y);
                 if (dist < minDist) { minDist = dist; nearest = p; }
             }
         });
-        
         return nearest;
     }
 
     function dealDamageToPlayer(target, dmg) {
         if (target.isShielded || target.isDead) return;
-        if (target.id === "local" || !peer) {
+        if (target.id === "local" || !isOnlineMode) {
             player.hp -= dmg; player.lastHitFrame = frames; updateHPBar();
             addFloatText(`-${Math.floor(dmg)}`, player.x, player.y - 40, '#ef4444');
             if(player.hp <= 0) handleLocalDeath(); 
         } else {
             target.hp -= dmg;
-            if (peer) broadcast({type: 'float_text', text: `-${Math.floor(dmg)}`, x: target.x, y: target.y - 40, color: '#ef4444'});
+            if (isOnlineMode) broadcast({type: 'float_text', text: `-${Math.floor(dmg)}`, x: target.x, y: target.y - 40, color: '#ef4444'});
         }
     }
 
-    // --- 8. Canvas Render engine ---
+    // --- 6. Graphics Render ---
     function drawBoldStickman(ctx, x, y, color, emoji, isMoving, f, isShadow = false, isAttacking = false, pName = "", teamColor = "") {
         ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 14; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         if(isShadow) { ctx.globalAlpha = 0.55; ctx.shadowBlur = 20; ctx.shadowColor = color; }
@@ -1104,7 +1185,7 @@
         ctx.fillText(emoji, x, bodyTop + 5);
 
         if (pName) {
-            ctx.font = 'bold 16px Arial';
+            ctx.font = 'bold 15px Arial';
             ctx.fillStyle = teamColor === '#000000' ? '#ffffff' : teamColor;
             ctx.shadowBlur = 5; ctx.shadowColor = '#000';
             ctx.fillText(pName, x, bodyTop - 50);
@@ -1138,13 +1219,11 @@
                 ctx.strokeStyle = t.color; ctx.lineWidth = 2; ctx.stroke();
                 ctx.fillStyle = t.color; ctx.fillRect(t.x - 20, t.y - 40, 40, 80);
                 ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.5; ctx.fillRect(t.x - 10, t.y - 30, 20, 60); ctx.globalAlpha = 1.0;
-                
                 ctx.fillStyle = '#1e293b'; ctx.fillRect(t.x - 40, t.y - 65, 80, 8);
                 ctx.fillStyle = t.color; ctx.fillRect(t.x - 40, t.y - 65, (t.hp/t.maxHp)*80, 8);
             });
         }
         
-        // Hazards (Bombs)
         hazards.forEach(hz => {
             ctx.beginPath(); ctx.arc(hz.x, hz.y, hz.radius, 0, Math.PI*2);
             ctx.fillStyle = hz.color; ctx.globalAlpha = 0.2 + (Math.sin(frames * 0.2) * 0.1); ctx.fill();
@@ -1215,6 +1294,4 @@
 </script>
 </body>
 </html>
-
-```
 
