@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Shadow Arena: Multiplayer Edition</title>
     <!-- PeerJS CDN -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <!-- External CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -107,71 +107,11 @@
             </div>
             <p style="color: #cbd5e1; text-align: left; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem;">Connected Players:</p>
             <div class="players-list" id="mp-players-list"></div>
-            
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
-                <button id="btn-start-mp" class="btn-change" style="background:#10b981; display:none;" onclick="startMultiplayerGame()">Start Game</button>
-                <button class="btn-change" style="background:#ef4444;" onclick="leaveMultiplayer()">Leave Lobby</button>
-            </div>
         </div>
     </div>
 
-    <!-- Stats Modal -->
-    <div id="stats-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 style="color: #a78bfa;">Upgrade Stats</h2>
-            <div style="font-size: 1.3rem; color: #facc15; font-weight: bold; margin-bottom: 10px;" id="modal-gold">🪙 0</div>
-            <div id="stats-container"></div>
-            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #475569;">
-            <h3 style="color: #facc15;">Boss Index (Shadow Companions)</h3>
-            <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px;">Max Shadows: <span id="max-shadows-txt">1</span></div>
-            <div class="boss-index-container" id="boss-index-list"></div>
-            <button class="btn-change" style="margin-top:15px; width:100%; background:#ef4444;" onclick="hideModal('stats-modal')">Close</button>
-        </div>
-    </div>
+    <!-- Game Script -->
+    <script src="Game.js"></script>
 
-    <!-- Hero Shop Modal -->
-    <div id="hero-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 style="color: #38bdf8;">Hero Shop</h2>
-            <div style="font-size: 1.1rem; color: #facc15; font-weight: bold; margin-bottom: 10px;" id="shop-gold">🪙 0</div>
-            <div class="hero-grid" id="hero-grid-container"></div>
-            <button class="btn-change" style="margin-top:15px; width:100%; background:#ef4444;" onclick="hideModal('hero-modal')">Close</button>
-        </div>
-    </div>
-
-    <!-- End Game Screen -->
-    <div id="end-screen">
-        <div id="end-title" class="defeat-text">DEFEAT</div>
-        <div id="end-subtitle" style="color:#cbd5e1; font-size:1.1rem; margin-bottom:20px;"></div>
-        <button class="btn-change" style="font-size: 1.1rem; padding: 12px 24px; background: #3b82f6;" onclick="location.reload()">Back to Menu</button>
-    </div>
-
-    <!-- Game UI -->
-    <div id="game-ui">
-        <div id="btn-exit" onclick="exitGame()">🚪 EXIT</div>
-        <div class="hud-top">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <span id="hud-emoji" style="font-size: 24px;">🤖</span>
-                <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-fill"></div></div>
-            </div>
-            <div class="hud-lives" id="hud-lives"></div>
-            <div class="hud-gold" id="ingame-gold">🪙 0</div>
-        </div>
-        <div id="wave-info">Wave: 1<br><span id="timer-txt" style="font-size:0.85rem; color:#fff;">Spawning...</span></div>
-
-        <div class="joystick-zone" id="joy-zone"><div class="joystick-knob" id="joy-knob"></div></div>
-        <div class="actions-zone">
-            <div class="act-btn btn-summon" id="btn-summon">SUMMON<div class="cooldown-overlay" id="cd-summon"></div></div>
-            <div class="act-btn" id="btn-dash" style="grid-column: 1; grid-row: 2; background:#f59e0b;">DASH<div class="cooldown-overlay" id="cd-dash"></div></div>
-            <div class="act-btn" id="btn-shield" style="grid-column: 2; grid-row: 2; background:#3b82f6;">SHIELD<div class="cooldown-overlay" id="cd-shield"></div></div>
-            <div class="act-btn" id="btn-spell" style="grid-column: 1; grid-row: 3; background:#10b981;">SPELL<div class="cooldown-overlay" id="cd-spell"></div></div>
-            <div class="act-btn btn-atk" id="btn-attack" style="grid-column: 2; grid-row: 3;">ATK</div>
-        </div>
-    </div>
-
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- External JavaScript -->
-    <script src="game.js"></script>
 </body>
 </html>
