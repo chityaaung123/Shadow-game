@@ -5,7 +5,7 @@ let saveData = JSON.parse(localStorage.getItem('shadowSaveV8')) || {
     unlockedBosses: [], 
     unlockedHeroes: ['🤖'], 
     selectedShadowBosses: [], 
-    friends: [], // [{ id, name, emoji, online }]
+    friends: [], 
     stats: { atk: 1, dash: 1, shield: 1, spell: 1, shadow: 1, maxShadows: 1, pSpeed: 1, pHp: 1, sSpeed: 1, sDmg: 1, sHp: 1, spellDur: 1, shieldDur: 1 }
 };
 
@@ -75,18 +75,28 @@ function updateMenuUI() {
     document.getElementById('ingame-gold').innerText = `🪙 ${saveData.gold}`;
 }
 
-// --- 2. PeerJS Stable Networking & Friends ---
+// --- UTF-8 Emoji Safe Helper (စာမကွဲအောင်) ---
+function safeEncode(str) { try { return encodeURIComponent(str || ""); } catch(e) { return str; } }
+function safeDecode(str) { try { return decodeURIComponent(str || ""); } catch(e) { return str; } }
+
+// --- 2. PeerJS Stable Networking & Friends (Hotspot/LAN Support) ---
 let mainPeer = null, myClientId = "", pendingInviteId = null;
 let connections = [];
 let isHost = false, lobbyPlayers = [], remotePlayers = {}; 
 let isOnlineMode = false;
+let isHotspotLANMode = false;
 
-function initMainNetworking() {
-    mainPeer = new Peer();
+function initMainNetworking(useHotspotLAN = false) {
+    if (mainPeer) mainPeer.destroy();
+    isHotspotLANMode = useHotspotLAN;
+    
+    // Hotspot / Same Wi-Fi ဖြစ်ရင် STUN/TURN server မစောင့်ဘဲ LAN Direct ချိတ်နိုင်ရန် Config
+    const peerOptions = useHotspotLAN ? { config: { 'iceServers': [] } } : undefined;
+    mainPeer = new Peer(undefined, peerOptions);
 
     mainPeer.on('open', (id) => {
         myClientId = id;
-        document.getElementById('my-acc-id').innerText = id;
+        document.getElementById('my-acc-id').innerText = id + (useHotspotLAN ? " (LAN/Hotspot)" : "");
         updateFriendsUI();
         checkFriendStatusOnline();
     });
@@ -94,22 +104,63 @@ function initMainNetworking() {
     mainPeer.on('connection', (conn) => {
         conn.on('data', (data) => {
             if (data.type === 'ping') {
-                conn.send({ type: 'pong', name: saveData.savedName, emoji: saveData.savedHeroEmoji });
+                conn.send({ type: 'pong', name: safeEncode(saveData.savedName), emoji: safeEncode(saveData.savedHeroEmoji) });
             }
             else if (data.type === 'game_invite') {
                 pendingInviteId = data.hostId;
-                document.getElementById('invite-msg-txt').innerText = `${data.hostName} invited you!`;
+                document.getElementById('invite-msg-txt').innerText = `${safeDecode(data.hostName)} invited you!`;
                 document.getElementById('invite-toast').style.display = 'block';
             }
             else if (data.type === 'update_settings') {
                 if (isHost) {
                     if (!connections.find(c => c.peer === conn.peer)) connections.push(conn);
-                    addLobbyPlayer(data.id, data.name, data.emoji, data.color, data.team, false);
+                    addLobbyPlayer(data.id, safeDecode(data.name), safeDecode(data.emoji), data.color, data.team, false);
                     broadcast({ type: 'lobby_update', players: lobbyPlayers });
                 }
             }
             else if (data.type === 'client_update' && gameState === 'PLAYING') {
-                if (isHost) remotePlayers[data.id] = data.playerState;
+                if (isHost) {
+                    // Host က Client ရဲ့ Position/Input ကိုပဲ ယူပြီး HP/Dead State ကို Authoritative အနေနဲ့ ထိန်းသည်
+                    let decodedName = safeDecode(data.playerState.name);
+                    let decodedEmoji = safeDecode(data.playerState.emoji);
+                    if (!remotePlayers[data.id]) {
+                        remotePlayers[data.id] = { ...data.playerState, name: decodedName, emoji: decodedEmoji, hp: getStatValue('pHp'), maxHp: getStatValue('pHp'), isDead: false, lives: 5 };
+                    } else {
+                        remotePlayers[data.id].x = data.playerState.x;
+                        remotePlayers[data.id].y = data.playerState.y;
+                        remotePlayers[data.id].vx = data.playerState.vx;
+                        remotePlayers[data.id].vy = data.playerState.vy;
+                        remotePlayers[data.id].isMoving = data.playerState.isMoving;
+                        remotePlayers[data.id].isShielded = data.playerState.isShielded;
+                        remotePlayers[data.id].name = decodedName;
+                        remotePlayers[data.id].emoji = decodedEmoji;
+                        remotePlayers[data.id].color = data.playerState.color;
+                        remotePlayers[data.id].team = data.playerState.team;
+                        remotePlayers[data.id].lastAtkFrame = data.playerState.lastAtkFrame;
+                    }
+                }
+            }
+            // --- Client တိုက်ခိုက်မှု (Attack/Spell) များကို Host က ထိန်းချုပ်ပေးခြင်း ---
+            else if (data.type === 'client_attack' && isHost && remotePlayers[data.id]) {
+                let clientP = remotePlayers[data.id];
+                handleLocalAttacks(clientP, data.dmg);
+            }
+            else if (data.type === 'client_spell' && isHost && remotePlayers[data.id]) {
+                let clientP = remotePlayers[data.id];
+                let em = safeDecode(data.emoji);
+                let dirX = clientP.vx || 1, dirY = clientP.vy || 0;
+                if(['🤖','💀','👻','🧟','👺','👹'].includes(em)) {
+                    spells.push({ x: clientP.x, y: clientP.y, vx: dirX * 18, vy: dirY * 18, life: 100, color: clientP.color, isPlayerSpell: true, dmg: 65 + data.atk });
+                } else if (em === '🥷') {
+                    for(let a=0; a<Math.PI*2; a+=Math.PI/4) { spells.push({ x: clientP.x, y: clientP.y, vx: Math.cos(a)*20, vy: Math.sin(a)*20, life: 50, color: '#94a3b8', isPlayerSpell: true, dmg: 50 + data.atk }); }
+                }
+            }
+            else if (data.type === 'client_summon' && isHost && remotePlayers[data.id]) {
+                let clientP = remotePlayers[data.id];
+                (data.bosses || []).forEach(bEmoji => {
+                    allyShadows.push({ x: clientP.x + (Math.random()*60-30), y: clientP.y + (Math.random()*60-30), emoji: safeDecode(bEmoji), hp: getStatValue('sHp'), maxHp: getStatValue('sHp'), speed: getStatValue('sSpeed'), dmg: getStatValue('sDmg'), lastSpellFrame: 0 });
+                });
+                createParticles(clientP.x, clientP.y, '#7c3aed', 50);
             }
         });
         
@@ -128,6 +179,13 @@ function initMainNetworking() {
         console.error("Peer Error:", err);
         if (err.type === 'peer-unavailable') alert("Connection failed. ID not found or offline.");
     });
+}
+
+// Hotspot / Wi-Fi LAN Mode ကို ဖွင့်/ပိတ်ပေးမည့် Function
+function toggleHotspotLANMode() {
+    isHotspotLANMode = !isHotspotLANMode;
+    initMainNetworking(isHotspotLANMode);
+    alert(isHotspotLANMode ? "Hotspot/LAN Mode ON: လိုင်းမလိုဘဲ Hotspot / Wi-Fi တစ်ခုတည်းချိတ်ဆော့နိုင်ပါပြီ။" : "Online Mode Normal: အင်တာနက် ပုံမှန် Mode သို့ ပြောင်းလိုက်ပါပြီ။");
 }
 
 function copyMyId() {
@@ -165,8 +223,8 @@ function checkFriendStatusOnline() {
         });
         c.on('data', (data) => {
             if (data.type === 'pong') {
-                f.name = data.name || f.name;
-                f.emoji = data.emoji || f.emoji;
+                f.name = safeDecode(data.name) || f.name;
+                f.emoji = safeDecode(data.emoji) || f.emoji;
                 updateFriendsUI();
             }
         });
@@ -203,7 +261,7 @@ function inviteFriend(targetId) {
     if (!mainPeer) return;
     let conn = mainPeer.connect(targetId);
     conn.on('open', () => {
-        conn.send({ type: 'game_invite', hostId: myClientId, hostName: saveData.savedName || "Player" });
+        conn.send({ type: 'game_invite', hostId: myClientId, hostName: safeEncode(saveData.savedName || "Player") });
         alert("Invite Sent!");
     });
 }
@@ -222,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('disp-emoji').innerText = saveData.savedHeroEmoji;
     document.getElementById('disp-name').innerText = saveData.savedHeroName;
     document.getElementById('hud-emoji').innerText = saveData.savedHeroEmoji;
-    initMainNetworking();
+    initMainNetworking(false);
 });
 
 document.getElementById('player-name').addEventListener('input', (e) => { saveData.savedName = e.target.value; saveGame(); });
@@ -334,13 +392,13 @@ function setupMultiplayerLobby(asHost) {
     document.getElementById('join-input-container').style.display = 'none';
     
     if (asHost) {
-        document.getElementById('mp-title').innerText = "Host Lobby";
+        document.getElementById('mp-title').innerText = "Host Lobby" + (isHotspotLANMode ? " (LAN/Hotspot)" : "");
         document.getElementById('room-code-txt').innerText = myClientId; 
         document.getElementById('btn-start-mp').style.display = 'inline-block';
         lobbyPlayers = []; connections = []; 
         addLobbyPlayer(myClientId, myName, currentHero.emoji, playerColor, playerTeamColor, true);
     } else {
-        document.getElementById('mp-title').innerText = "Join Room";
+        document.getElementById('mp-title').innerText = "Join Room" + (isHotspotLANMode ? " (LAN/Hotspot)" : "");
         document.getElementById('mp-code-container').style.display = 'none';
         document.getElementById('join-input-container').style.display = 'block';
         document.getElementById('btn-start-mp').style.display = 'none';
@@ -358,7 +416,7 @@ function joinRoomSubmit() {
     conn.on('open', () => {
         document.getElementById('room-code-txt').innerText = "Connected!";
         connections = [conn];
-        conn.send({ type: 'update_settings', id: myClientId, name: myName, emoji: currentHero.emoji, color: playerColor, team: playerTeamColor });
+        conn.send({ type: 'update_settings', id: myClientId, name: safeEncode(myName), emoji: safeEncode(currentHero.emoji), color: playerColor, team: playerTeamColor });
     });
 
     conn.on('data', (data) => {
@@ -366,7 +424,14 @@ function joinRoomSubmit() {
         if (data.type === 'start_game') { startPlayingPhase(true); }
         if (data.type === 'sync_game_state') {
             enemies = data.enemies; spells = data.spells; particles = data.particles; allyShadows = data.allyShadows; hazards = data.hazards; wave = data.wave; waveState = data.waveState; frames = data.frames; remotePlayers = data.players;
-            if (data.players[myClientId]) { player.hp = data.players[myClientId].hp; player.isDead = data.players[myClientId].isDead; player.lives = data.players[myClientId].lives; updateHPBar(); updateLivesUI(); }
+            // Host ထံမှ ဆင်းလာသည့် Authoritative HP နှင့် Lives ကိုမှ Client က ယူသည်
+            if (data.players[myClientId]) { 
+                player.hp = data.players[myClientId].hp; 
+                player.isDead = data.players[myClientId].isDead; 
+                player.lives = data.players[myClientId].lives; 
+                updateHPBar(); 
+                updateLivesUI(); 
+            }
         }
         if (data.type === 'float_text') addFloatText(data.text, data.x, data.y, data.color);
         if (data.type === 'end_game') showEndGame(data.status, data.color, data.sub);
@@ -396,7 +461,7 @@ function sendPlayerSettingsUpdate() {
         if (self) { self.emoji = currentHero.emoji; self.color = playerColor; self.team = playerTeamColor; self.name = myName; }
         broadcast({ type: 'lobby_update', players: lobbyPlayers }); updateLobbyListUI();
     } else if (connections[0] && connections[0].open) {
-        connections[0].send({ type: 'update_settings', id: myClientId, name: myName, emoji: currentHero.emoji, color: playerColor, team: playerTeamColor });
+        connections[0].send({ type: 'update_settings', id: myClientId, name: safeEncode(myName), emoji: safeEncode(currentHero.emoji), color: playerColor, team: playerTeamColor });
     }
 }
 
@@ -467,7 +532,13 @@ document.getElementById('btn-attack').ontouchstart = (e) => {
     e.preventDefault(); if(player.isDead) return;
     player.lastAtkFrame = frames; createParticles(player.x, player.y, '#fff', 5);
     let dmg = getStatValue('atk'); if(player.lionBuff > 0) dmg *= 1.5;
-    if (!isOnlineMode || isHost) handleLocalAttacks(player, dmg);
+    
+    if (!isOnlineMode || isHost) {
+        handleLocalAttacks(player, dmg);
+    } else if (connections[0] && connections[0].open) {
+        // Client က တိုက်ခိုက်လျှင် Host ထံ Attack Command ပို့မည်
+        connections[0].send({ type: 'client_attack', id: myClientId, dmg: dmg });
+    }
 };
 
 function handleLocalAttacks(attacker, dmg) {
@@ -480,13 +551,22 @@ document.getElementById('btn-spell').ontouchstart = (e) => {
     e.preventDefault(); if(player.isDead || player.cdSpell > 0) return;
     let em = currentHero.emoji; let durMulti = getStatValue('spellDur');
     if(['🤖','💀','👻','🧟','👺','👹'].includes(em)) {
-        let dirX = player.vx || 1, dirY = player.vy || 0; if (!isOnlineMode || isHost) spells.push({ x: player.x, y: player.y, vx: dirX * 18, vy: dirY * 18, life: 100, color: playerColor, isPlayerSpell: true, dmg: 65 + getStatValue('atk') });
+        let dirX = player.vx || 1, dirY = player.vy || 0; 
+        if (!isOnlineMode || isHost) {
+            spells.push({ x: player.x, y: player.y, vx: dirX * 18, vy: dirY * 18, life: 100, color: playerColor, isPlayerSpell: true, dmg: 65 + getStatValue('atk') });
+        } else if (connections[0] && connections[0].open) {
+            connections[0].send({ type: 'client_spell', id: myClientId, emoji: safeEncode(em), atk: getStatValue('atk') });
+        }
     }
     else if(em === '🧛‍♂️') { player.slowTimer = 0; createParticles(player.x, player.y, '#dc2626', 30); healPlayer(player.maxHp * 0.2); }
     else if (em === '🦁') { player.lionBuff = 420 * durMulti; healPlayer(player.maxHp * 0.1); createParticles(player.x, player.y, '#f59e0b', 30); }
     else if (em === '🧙‍♂️') { player.wizardBuff = 480 * durMulti; createParticles(player.x, player.y, '#3b82f6', 30); }
     else if (em === '🥷') {
-        for(let a=0; a<Math.PI*2; a+=Math.PI/4) { if (!isOnlineMode || isHost) spells.push({ x: player.x, y: player.y, vx: Math.cos(a)*20, vy: Math.sin(a)*20, life: 50, color: '#94a3b8', isPlayerSpell: true, dmg: 50 + getStatValue('atk') }); }
+        if (!isOnlineMode || isHost) {
+            for(let a=0; a<Math.PI*2; a+=Math.PI/4) { spells.push({ x: player.x, y: player.y, vx: Math.cos(a)*20, vy: Math.sin(a)*20, life: 50, color: '#94a3b8', isPlayerSpell: true, dmg: 50 + getStatValue('atk') }); }
+        } else if (connections[0] && connections[0].open) {
+            connections[0].send({ type: 'client_spell', id: myClientId, emoji: safeEncode(em), atk: getStatValue('atk') });
+        }
     }
     player.cdSpell = getStatValue('spell');
 };
@@ -496,6 +576,9 @@ document.getElementById('btn-summon').ontouchstart = (e) => {
     if(saveData.selectedShadowBosses.length === 0) return;
     if(!isOnlineMode || isHost) {
         saveData.selectedShadowBosses.forEach(emoji => { allyShadows.push({ x: player.x + (Math.random()*60-30), y: player.y + (Math.random()*60-30), emoji: emoji, hp: getStatValue('sHp'), maxHp: getStatValue('sHp'), speed: getStatValue('sSpeed'), dmg: getStatValue('sDmg'), lastSpellFrame: 0 }); });
+    } else if (connections[0] && connections[0].open) {
+        let encBosses = saveData.selectedShadowBosses.map(b => safeEncode(b));
+        connections[0].send({ type: 'client_summon', id: myClientId, bosses: encBosses });
     }
     createParticles(player.x, player.y, '#7c3aed', 50); player.shadowCD = getStatValue('shadow'); 
 };
@@ -591,8 +674,16 @@ function update() {
     if (player.hp <= 0 && !player.isDead) handleLocalDeath();
 
     if (isOnlineMode) {
-        if (isHost) { connections.forEach(conn => { let client = remotePlayers[conn.peer]; if (client) { client.x = Math.max(50, Math.min(MAP_SIZE-50, client.x)); client.y = Math.max(50, Math.min(MAP_SIZE-50, client.y)); } }); } 
-        else { let hostConn = connections[0]; if (hostConn && hostConn.open) { hostConn.send({ type: 'client_update', id: myClientId, playerState: { name: player.name, x: player.x, y: player.y, vx: player.vx, vy: player.vy, isMoving: player.isMoving, emoji: player.emoji, color: player.color, team: player.team, isShielded: player.isShielded, lionBuff: player.lionBuff, slowTimer: player.slowTimer, lastAtkFrame: player.lastAtkFrame, hp: player.hp, maxHp: player.maxHp, isDead: player.isDead, lives: player.lives } }); } }
+        if (isHost) { 
+            connections.forEach(conn => { let client = remotePlayers[conn.peer]; if (client) { client.x = Math.max(50, Math.min(MAP_SIZE-50, client.x)); client.y = Math.max(50, Math.min(MAP_SIZE-50, client.y)); } }); 
+        } 
+        else { 
+            let hostConn = connections[0]; 
+            if (hostConn && hostConn.open) { 
+                // Client က HP / lives မပို့ဘဲ Position, Input, Emoji, Safe Text ကိုသာ ပို့ပေးသည်
+                hostConn.send({ type: 'client_update', id: myClientId, playerState: { name: safeEncode(player.name), x: player.x, y: player.y, vx: player.vx, vy: player.vy, isMoving: player.isMoving, emoji: safeEncode(player.emoji), color: player.color, team: player.team, isShielded: player.isShielded, lastAtkFrame: player.lastAtkFrame } }); 
+            } 
+        }
         
         if (isHost && waveState !== 'GAME_OVER') {
             let allDead = player.isDead && Object.values(remotePlayers).every(p => p.isDead);
